@@ -7188,6 +7188,8 @@ static struct platform_device *crespo_devices[] __initdata = {
 #ifdef CONFIG_SND_S5P_RP
 	&s5p_device_rp,
 #endif
+	//cdma modem driver
+	&sec_device_dpram,
 };
 
 unsigned int HWREV;

@@ -37,6 +37,8 @@ include/config/
 include/generated/
 include/linux/version.h
 kernel/bounds.s
+kernel/config_data.gz
+kernel/config_data.h
 kernel/timeconst.h
 lib/crc32table.h
 lib/gen_crc32table
@@ -44,6 +46,7 @@ lib/lib.a
 scripts/basic/docproc
 scripts/basic/fixdep
 scripts/basic/hash
+scripts/bin2c
 scripts/conmakehash
 scripts/kallsyms
 scripts/kconfig/conf

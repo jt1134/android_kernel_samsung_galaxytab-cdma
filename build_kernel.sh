@@ -11,7 +11,8 @@ mv DONTLOOKATME .git
 
 #exit
 
+X="arch/arm/boot/zImage"
 adb reboot download
 sleep 5
-heimdall flash --kernel arch/arm/boot/zImage
+heimdall flash --kernel "$X" --recovery "$X"
 

@@ -13,6 +13,7 @@ do
 done
 
 make -j8
+cp arch/arm/boot/zImage ../../../device/samsung/vzwtab/kernel
 
 mv DONTLOOKATME .git
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TREE="device/samsung/vzwtab"
+
 #SRSLYWTF
 mv .git DONTLOOKATME
 
@@ -7,17 +9,15 @@ make clean mrproper
 make ARCH=arm p1_defconfig
 
 make -j8 modules
-for m in `find . -name *.ko`
+for M in `find . -name *.ko`
 do
-  cp $m ../../../device/samsung/vzwtab/initramfs/lib/modules
+  cp $M ../../../"$TREE"/initramfs/lib/modules
 done
 
 make -j8
-cp arch/arm/boot/zImage ../../../device/samsung/vzwtab/kernel
+cp arch/arm/boot/zImage ../../../"$TREE"/kernel
 
 mv DONTLOOKATME .git
-
-#exit
 
 X="arch/arm/boot/zImage"
 adb reboot download

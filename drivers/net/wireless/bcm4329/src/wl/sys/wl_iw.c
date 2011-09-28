@@ -1362,8 +1362,8 @@ int init_ap_profile_from_string(char *param_str, struct ap_profile *ap_cfg)
 	char *str_ptr = param_str;
 	char sub_cmd[16];
 	int ret = 0;
-#ifdef NEW_AP_INTERFACE
 	uint8 sec[SEC_LEN];
+#ifdef NEW_AP_INTERFACE
 	uint8 wepkey[KEY_LEN];
 	int i, enc;
 	struct mflist *maclist = 0;
@@ -6067,8 +6067,8 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 		WL_SOFTAP(("	key = '%s'\n", ap->key));
 	WL_SOFTAP(("	channel = %d\n", ap->channel));
 	WL_SOFTAP(("	max scb = %d\n", ap->max_scb));
-	WL_SOFTAP(("	hidden = %d\n", ap->hidden_ssid));
 #ifdef NEW_AP_INTERFACE
+	WL_SOFTAP(("	hidden = %d\n", ap->hidden_ssid));
 	WL_SOFTAP(("	802.11 = %d\n", ap->op_mode));
 	WL_SOFTAP(("	MAC filter mode = %d\n", ap->mac_filter.mode));
 	if (ap->mac_filter.mode == 0) {
@@ -6192,6 +6192,7 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 		res, __FUNCTION__));
 		goto fail;
 	}
+#ifdef NEW_AP_INTERFACE
 	else {
 		char buf[WLC_IOCTL_SMLEN];
 		int iolen;
@@ -6204,7 +6205,7 @@ static int set_ap_cfg(struct net_device *dev, struct ap_profile *ap)
 		}
 		
 	}
-
+#endif
 	
 	if (ap_cfg_running == FALSE) {
 		
@@ -6274,7 +6275,9 @@ static int wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap)
 		WL_SOFTAP(("	key = '%s'\n", ap->key));
 	WL_SOFTAP(("	channel = %d\n", ap->channel));
 	WL_SOFTAP(("	max scb = %d\n", ap->max_scb));
+#ifdef NEW_AP_INTERFACE
 	WL_SOFTAP(("	hidden = %d\n", ap->hidden_ssid));
+#endif
 
 	if (strnicmp(ap->sec, "open", strlen("open")) == 0) {
 
@@ -6287,7 +6290,7 @@ static int wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap)
 		WL_SOFTAP(("=====================\n"));
 		WL_SOFTAP((" wsec & wpa_auth set 'OPEN', result:&d %d\n", res));
 		WL_SOFTAP(("=====================\n"));
-
+#ifdef NEW_AP_INTERFACE
 	} else if (strnicmp(ap->sec, "wep", strlen("wep")) == 0) {
 
 	   
@@ -6316,7 +6319,7 @@ static int wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap)
 		WL_SOFTAP(("=====================\n"));
 		WL_SOFTAP((" wsec & auth set 'WEP', result:&d %d\n", res));
 		WL_SOFTAP(("=====================\n"));
-
+#endif
 	} else if (strnicmp(ap->sec, "wpa2-psk", strlen("wpa2-psk")) == 0) {
 
 	   
@@ -6873,7 +6876,7 @@ set_ap_mac_list(struct net_device *dev, char *buf)
 	struct maclist *black_maclist = (struct maclist *)&mac_list_set->black_list;
 	int mac_mode = mac_list_set->mode;
 	int length;
-	int i;
+	int i, ret;
 
 	ap_macmode = mac_mode;
 	if (mac_mode == MACLIST_MODE_DISABLED) {

@@ -135,7 +135,7 @@ typedef enum broadcast_first_scan {
 } broadcast_first_scan_t;
 #ifdef SOFTAP
 
-#define NEW_AP_INTERFACE
+//#define NEW_AP_INTERFACE
 
 #define SSID_LEN	33
 #define SEC_LEN		16

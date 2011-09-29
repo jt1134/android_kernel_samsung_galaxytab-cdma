@@ -37,7 +37,6 @@
 #define SOFTAP 1
 
 
-#define FEATURE_HOTSPOT_EVENT
 #define	WL_IW_RSSI_MINVAL		-200	
 #define	WL_IW_RSSI_NO_SIGNAL	-91	
 #define	WL_IW_RSSI_VERY_LOW	-80	
@@ -67,13 +66,6 @@
 #define WL_FW_RELOAD            (SIOCIWFIRSTPRIV+27)
 //#define WL_AP_SPARE2            (SIOCIWFIRSTPRIV+29)
 //#define WL_AP_SPARE3            (SIOCIWFIRSTPRIV+31)
-#ifdef FEATURE_HOTSPOT_EVENT
-//  SecFeature CHG START STEALTH_V by jaekwan.jeon
-#define WL_AP_MAX_ASSOC         (SIOCIWFIRSTPRIV+29)
-// #define GET_QUEUE		(SIOCIWFIRSTPRIV+29)
-// #define GET_QUEUE_SIZE  (SIOCIWFIRSTPRIV+31)
-//  SecFeature CHG END STEALTH_V by jaekwan.jeon
-#endif
 #define 		G_SCAN_RESULTS 8*1024
 #define 		WE_ADD_EVENT_FIX	0x80
 #define          G_WLAN_SET_ON	0

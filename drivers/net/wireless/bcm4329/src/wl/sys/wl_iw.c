@@ -107,11 +107,6 @@ static bool     fw_reload_iscall = FALSE;
 struct net_device *ap_net_dev = NULL;
 struct semaphore  ap_eth_sema;
 
-#ifdef FEATURE_HOTSPOT_EVENT
-extern int hotspot_event_detect_complete(char *msg);
-#endif
-
-
 static int wl_iw_set_ap_security(struct net_device *dev, struct ap_profile *ap);
 static int wl_iw_softap_deassoc_stations(struct net_device *dev);
 #endif 
@@ -301,93 +296,6 @@ static int wl_iw_escan(escan_info_t *escan, wlc_ssid_t *ssid, uint16 action);
 int  wl_iw_escan_set_scan_broadcast_prep(struct net_device *dev, uint flag);
 
 #endif 
-
-#ifdef FEATURE_HOTSPOT_EVENT
-
-#define HOTSPOT_INFO_MAX 30
-#define HOTSPOT_QUEUE_PROCESSING_SUCCESS	0
-#define HOTSPOT_QUEUE_PROCESSING_FAIL		-1
-
-
-typedef struct _hotspot_info
-{
-    char hotspot_info_str[HOTSPOT_INFO_MAX];
-    struct net_device *hotspot_info_netdevice;
-
-    struct _hotspot_info *prev;
-    struct _hotspot_info *next;
-} hotspot_info;
-
-static int hot_spot_info_queue_cnt = 0;
-hotspot_info *hotspot_head_p, *hotspot_tail_p;
-int hotspot_init_flag = 0;
-
-int init_hotspot_info_queue(void);
-void clear_hotspot_info_queue(void);
-int enqueue_hotspot_info_queue(char *str);
-int dequeue_hotspot_info_queue(char *str);
-int dequeue_hotspot_info_queue_size(void);
-
-int init_hotspot_info_queue(void)
-{
-     return HOTSPOT_QUEUE_PROCESSING_FAIL;
-}
-
-void clear_hotspot_info_queue(void)
-{
-
-}
-
-int enqueue_hotspot_info_queue(char *str)
-{
-     return HOTSPOT_QUEUE_PROCESSING_FAIL;
-}
-
-int dequeue_hotspot_info_queue(char *str)
-{
-     return HOTSPOT_QUEUE_PROCESSING_FAIL;
-}
-
-int dequeue_hotspot_info_queue_size(void)
-{
-    return hot_spot_info_queue_cnt;
-}
-
-
-
-int get_hotspot_info_queue_wrapper(
-	struct net_device *dev, struct iw_request_info *info, 
-	union iwreq_data *dwrq, char *cmd_str)
-
-{
-    return HOTSPOT_QUEUE_PROCESSING_FAIL;
-}
-
-int get_hotspot_info_queue_size_wrapper(
-	struct net_device *dev, struct iw_request_info *info, 
-	union iwreq_data *dwrq, char *cmd_str)
-
-{
-#if 1
-    int ret = dequeue_hotspot_info_queue_size();
-    if(ret < 0)
-    {
-    	ret = 0;
-	copy_to_user(dwrq->data.pointer, &ret, sizeof(int));
-        return HOTSPOT_QUEUE_PROCESSING_FAIL;
-    }
-    else
-    {
-        copy_to_user(dwrq->data.pointer, &ret, sizeof(int));
-        return HOTSPOT_QUEUE_PROCESSING_SUCCESS;
-    }
-#else
-	return HOTSPOT_QUEUE_PROCESSING_FAIL;
-#endif
-
-}
-
-#endif
 
 static int
 wl_iw_set_scan(
@@ -1109,13 +1017,6 @@ wl_iw_send_priv_event(
 	union iwreq_data wrqu;
 	char extra[IW_CUSTOM_MAX + 1];
 	int cmd;
-
-#ifdef FEATURE_HOTSPOT_EVENT
-        if(ap_cfg_running) {
-          hotspot_event_detect_complete(flag);
-          return 0;
-     }
-#endif
 
 	cmd = IWEVCUSTOM;
 	memset(&wrqu, 0, sizeof(wrqu));
@@ -7367,17 +7268,6 @@ static const iw_handler wl_iw_priv_handler[] = {
 	
 	NULL,
 	(iw_handler)iwpriv_fw_reload,
-
-#ifdef FEATURE_HOTSPOT_EVENT
-        NULL,
-        (iw_handler)iwpriv_set_max_stations,
-/*
-    NULL,
-    (iw_handler)get_hotspot_info_queue_wrapper,
-    NULL,
-    (iw_handler)get_hotspot_info_queue_size_wrapper
-*/
-#endif    
 #endif 
 };
 
@@ -7482,34 +7372,6 @@ static const struct iw_priv_args wl_iw_priv_args[] =
 		IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_FIXED | 0,
 		"WL_FW_RELOAD"
 	},
-//  SecFeature ADD START STEALTH_V by jaekwan.jeon
-	{ 
-		WL_AP_MAX_ASSOC,
-                IW_PRIV_TYPE_CHAR | 256,
-		0,   
-		"AP_MAX_ASSOC"
-	},
-//  SecFeature ADD END STEALTH_V by jaekwan.jeon
-#ifdef FEATURE_HOTSPOT_EVENT
-//  SecFeature DEL START STEALTH_V by jaekwan.jeon
-/*
-	{ 
-		GET_QUEUE,
-		0,   
-		IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_FIXED | 0,   
-		"GET_QUEUE"
-	},
-
-	{ 
-		GET_QUEUE_SIZE,
-		0,   
-		IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_FIXED | 0,   
-		"GET_QUEUE_SIZE"
-	},
-*/
-//  SecFeature DEL END STEALTH_V by jaekwan.jeon
-#endif
-
 #endif 
 	};
 
@@ -8478,10 +8340,6 @@ int wl_iw_attach(struct net_device *dev, void * dhdp)
 void wl_iw_detach(void)
 {
 
-#ifdef FEATURE_HOTSPOT_EVENT
-	int hotspot_ret = 0;
-#endif
-
 #if defined(WL_IW_USE_ISCAN)
 	iscan_buf_t  *buf;
 	iscan_info_t *iscan = g_iscan;
@@ -8526,9 +8384,5 @@ void wl_iw_detach(void)
 		
 		wl_iw_send_priv_event(priv_dev, "AP_DOWN");
 	}
-#endif
-
-#ifdef FEATURE_HOTSPOT_EVENT
-	clear_hotspot_info_queue();
 #endif
 }

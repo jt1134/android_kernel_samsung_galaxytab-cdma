@@ -11,7 +11,15 @@ make ARCH=arm p1_defconfig
 make -j8 modules
 for M in `find . -name *.ko`
 do
-  cp $M ../../../"$TREE"/initramfs/lib/modules
+  B=`basename "$M"`
+  case "$B" in
+  "dhd.ko")
+    cp "$M" ../../../"$TREE"
+    ;;
+  *)
+    cp "$M" ../../../"$TREE"/initramfs/lib/modules
+    ;;
+  esac
 done
 
 make -j8

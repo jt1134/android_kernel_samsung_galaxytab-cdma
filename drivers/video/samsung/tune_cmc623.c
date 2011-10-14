@@ -890,23 +890,23 @@ bool cmc623_tune(unsigned long num) // P1_LSJ : DE08
 	unsigned int i;
     
 	//  num = NV_ARRAY_SIZE(Cmc623_TuneSeq);
-	printk("========== Start of tuning CMC623 Jun  ==========\n");
-
+	// printk("========== Start of tuning CMC623 Jun  ==========\n");
+        
 	for (i=0; i<num; i++) 
     {
-		printk("[%2d] Writing => reg: 0x%2x, data: 0x%4lx\n", i+1, Cmc623_TuneSeq[i].RegAddr, Cmc623_TuneSeq[i].Data);
+		// printk("[%2d] Writing => reg: 0x%2x, data: 0x%4lx\n", i+1, Cmc623_TuneSeq[i].RegAddr, Cmc623_TuneSeq[i].Data);
 
 		if (0 > cmc623_I2cWrite16(Cmc623_TuneSeq[i].RegAddr, Cmc623_TuneSeq[i].Data)) 
 
         // cmc623_I2cWrite(struct i2c_client *client, u8 reg, u8 *data, u8 length)
         //if (!cmc623_I2cWrite16(Cmc623_TuneSeq[i].RegAddr, Cmc623_TuneSeq[i].Data)) 
         {
-			printk("I2cWrite16 failed\n");
+			//printk("I2cWrite16 failed\n");
 			return 0;
 		}
         else 
         {
-			printk("I2cWrite16 succeed\n");
+			//printk("I2cWrite16 succeed\n");
         }
 
         if ( Cmc623_TuneSeq[i].RegAddr == CMC623_REG_SWRESET && Cmc623_TuneSeq[i].Data == 0xffff ) 
@@ -916,7 +916,7 @@ bool cmc623_tune(unsigned long num) // P1_LSJ : DE08
             mdelay(3);
 		}
 	}
-	printk("==========  End of tuning CMC623 Jun  ==========\n");
+	// printk("==========  End of tuning CMC623 Jun  ==========\n");
 	return 1;
 }
 
@@ -955,13 +955,13 @@ static int parse_text(char * src, int len)
 		count++;
 	}
 
-	printk("----------------------------- Total number of lines:%d\n", count);
+	// printk("----------------------------- Total number of lines:%d\n", count);
 
 	for(i=0; i<count; i++) 
     {
-		printk("line:%d, [start]%s[end]\n", i, str_line[i]);
+		// printk("line:%d, [start]%s[end]\n", i, str_line[i]);
 		ret = sscanf(str_line[i], "0x%x,0x%x\n", &data1, &data2);
-		printk("Result => [0x%2x 0x%4x] %s\n", data1, data2, (ret==2)?"Ok":"Not available");
+		// printk("Result => [0x%2x 0x%4x] %s\n", data1, data2, (ret==2)?"Ok":"Not available");
 		if(ret == 2) 
         {   
 			Cmc623_TuneSeq[index].RegAddr = (unsigned char)data1;
@@ -1039,9 +1039,9 @@ static int cmc623_load_data(void)
 
 	for(i=0; i<l; i++)
     {   
-		printk("%x ", dp[i]);
+		// printk("%x ", dp[i]);
     }
-	printk("\n");
+	// printk("\n");
 
 	num = parse_text(dp, l);
 
@@ -1052,7 +1052,7 @@ static int cmc623_load_data(void)
 		return -1;
 	}
 		
-	printk("------ Jun Total number of parsed lines: %d\n", num);
+	// printk("------ Jun Total number of parsed lines: %d\n", num);
 	cmc623_tune(num);
 
 	kfree(dp);
@@ -1072,9 +1072,9 @@ static int cmc623_tuning_set (void)  // P1_LSJ DE19
 {
     int ret = 0;
 
-    printk("**************************************\n");
-    printk("**** < cmc623_tuning_set >       *****\n");
-    printk("**************************************\n");
+    // printk("**************************************\n");
+    // printk("**** < cmc623_tuning_set >       *****\n");
+    // printk("**************************************\n");
 
 	cmc623_I2cWrite16(0x00, 0x0000);    //BANK 0
 	cmc623_I2cWrite16(0x01, 0x0070);    //algorithm selection
@@ -1175,7 +1175,7 @@ static int cmc623_tuning_set (void)  // P1_LSJ DE19
 
 	cmc623_I2cWrite16(0x26, 0x0001);
 
-    printk("**** < end cmc623_tuning_set >       *****\n");
+    // printk("**** < end cmc623_tuning_set >       *****\n");
 
 	return ret;    
 }
@@ -1185,9 +1185,9 @@ static int cmc623_initial_set (void)  // P1_LSJ DE19
     int ret = 0;
 	uint16_t vlw_hlw, vbp_vfp, hbp_hfp;
 
-    printk("**************************************\n");
-    printk("**** < cmc623_initial_set >       *****\n");
-    printk("**************************************\n");
+    // printk("**************************************\n");
+    // printk("**** < cmc623_initial_set >       *****\n");
+    // printk("**************************************\n");
 
 	if(s3cfb_lcd_timing_data.h_fp == 0)
 		{
@@ -1273,7 +1273,7 @@ static int cmc623_initial_set (void)  // P1_LSJ DE19
 
 	cmc623_I2cWrite16(0x26, 0x0001);
 
-    printk("**** < end cmc623_initial_set >       *****\n");
+    // printk("**** < end cmc623_initial_set >       *****\n");
 
 	return ret;    
 }
@@ -1281,9 +1281,9 @@ static int cmc623_initial_set (void)  // P1_LSJ DE19
 static void cmc623_set_tuning (void)
 {
 
-    printk("**************************************\n");
-    printk("**** < cmc623_set_tuning >       *****\n");
-    printk("**************************************\n");
+    // printk("**************************************\n");
+    // printk("**** < cmc623_set_tuning >       *****\n");
+    // printk("**************************************\n");
 
 #if 0
 	//VA tuning
@@ -1865,11 +1865,11 @@ static ssize_t set_reg_store(struct device *dev, struct device_attribute *attr,c
 	int ret;
 	u32 data1, data2;
 	
-	printk("[cmc623] %s : %s\n", __func__, buf);
+	// printk("[cmc623] %s : %s\n", __func__, buf);
 	ret = sscanf(buf, "0x%x 0x%x\n", &data1, &data2);
 	if(ret == 2)
 		{
-		printk("addr:0x%04x, data:0x%04x\n", data1, data2);
+		// printk("addr:0x%04x, data:0x%04x\n", data1, data2);
 		cmc623_I2cWrite16(data1, data2);
 		}
 	else
@@ -1889,14 +1889,14 @@ static ssize_t read_reg_show(struct device *dev, struct device_attribute *attr, 
 	int ret=0;
 	u16 data2;
 	
-	printk("[cmc623] %s\n", __func__);
-	printk("addr:0x%04x\n", read_reg_address);
+	// printk("[cmc623] %s\n", __func__);
+	// printk("addr:0x%04x\n", read_reg_address);
 	if(read_reg_address >= 0x100)
 		ret = cmc623_I2cWrite16(0x00, 0x0001);
 	else if(read_reg_address > 0x0)
 		ret = cmc623_I2cWrite16(0x00, 0x0000);
 	ret = cmc623_I2cRead16(read_reg_address, &data2);
-	printk("data:0x%04x\n", data2);
+	// printk("data:0x%04x\n", data2);
 
     return sprintf(buf, "addr:0x%04x, data:0x%04x\n", read_reg_address, data2);
 }
@@ -1907,18 +1907,18 @@ static ssize_t read_reg_store(struct device *dev, struct device_attribute *attr,
 	u32 data1;
 	u16 data2;
 	
-	printk("[cmc623] %s : %s\n", __func__, buf);
+	// printk("[cmc623] %s : %s\n", __func__, buf);
 	ret = sscanf(buf, "0x%x\n", &data1);
 	if(ret == 1)
 		{
 		read_reg_address = data1;
-		printk("addr:0x%04x\n", data1);
+		// printk("addr:0x%04x\n", data1);
 		if(read_reg_address >= 0x100)
 			ret = cmc623_I2cWrite16(0x00, 0x0001);
 		else if(read_reg_address > 0x0)
 			ret = cmc623_I2cWrite16(0x00, 0x0000);
 		ret = cmc623_I2cRead16(read_reg_address, &data2);
-		printk("data:0x%04x\n", data2);
+		// printk("data:0x%04x\n", data2);
 		}
 	else
 		{
@@ -1942,36 +1942,36 @@ static ssize_t show_regs_store(struct device *dev, struct device_attribute *attr
 	u32 data1;
 	u16 data2;
 	
-	printk("[cmc623] %s : %s\n", __func__, buf);
+	// printk("[cmc623] %s : %s\n", __func__, buf);
 	ret = sscanf(buf, "%d\n", &data1);
 	if(ret == 1 && data1 == 1)
 		{
 		ret = cmc623_I2cWrite16(0x00, 0x0000);
-		printk("BANK0\n");
+		// printk("BANK0\n");
 		for(i=0;i<ARRAY_SIZE(all_regs_bank0);i++)
 			{
 			if(all_regs_bank0[i] == DELIMITER)
 				{
-				printk("------------------------\n");
+				// printk("------------------------\n");
 				}
 			else
 				{
 				ret = cmc623_I2cRead16(all_regs_bank0[i], &data2);
-				printk("addr:0x%04x, data:0x%04x\n", all_regs_bank0[i], data2);
+				// printk("addr:0x%04x, data:0x%04x\n", all_regs_bank0[i], data2);
 				}
 			}
 		ret = cmc623_I2cWrite16(0x00, 0x0001);
-		printk("BANK1\n");
+		// printk("BANK1\n");
 		for(i=0;i<ARRAY_SIZE(all_regs_bank1);i++)
 			{
 			if(all_regs_bank1[i] == DELIMITER)
 				{
-				printk("------------------------\n");
+				// printk("------------------------\n");
 				}
 			else
 				{
 				ret = cmc623_I2cRead16(all_regs_bank1[i], &data2);
-				printk("addr:0x%04x, data:0x%04x\n", all_regs_bank1[i], data2);
+				// printk("addr:0x%04x, data:0x%04x\n", all_regs_bank1[i], data2);
 				}
 			}
 		}
@@ -2008,7 +2008,7 @@ static ssize_t set_bypass_store(struct device *dev, struct device_attribute *att
 	//u16 data2;
 	mDNIe_data_type *mode = cmc623_values[CMC_Bypass*LCD_TYPE_MAX+lcd_type];
 	
-	printk("[cmc623] %s : %s\n", __func__, buf);
+	// printk("[cmc623] %s : %s\n", __func__, buf);
 	ret = sscanf(buf, "%d\n", &data1);
 
 	mutex_lock(&cmc623_state_transaction_lock);
@@ -2043,7 +2043,7 @@ static ssize_t set_bypass_store(struct device *dev, struct device_attribute *att
 		}
 	mutex_unlock(&cmc623_state_transaction_lock);
 	
-	printk("end %s\n", __func__);
+	// printk("end %s\n", __func__);
 
 	return size;
 }
@@ -2131,9 +2131,9 @@ static int cmc623_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 //	struct i2c_client *c;
 	//int ret = 0;
 
-	printk("==============================\n");
-	printk("cmc623 attach START!!!        \n");
-	printk("==============================\n");
+	// printk("==============================\n");
+	// printk("cmc623 attach START!!!        \n");
+	// printk("==============================\n");
 
 	data = kzalloc(sizeof(struct cmc623_data), GFP_KERNEL);
 	if (!data)
@@ -2207,7 +2207,7 @@ static int __devinit cmc623_probe(struct platform_device *pdev)
 {
 	int ret=0;
 
-    printk("**** < cmc623_probe >      ***********\n");
+    // printk("**** < cmc623_probe >      ***********\n");
 
 	tune_cmc623_dev = device_create(sec_class, NULL, 0, NULL, "sec_tune_cmc623");
 
@@ -2249,16 +2249,16 @@ static int __devinit cmc623_probe(struct platform_device *pdev)
 		ret = -1;
 	}
 	
-    printk("<sec_tune_cmc623_i2c_driver Add START> \n");
+    // printk("<sec_tune_cmc623_i2c_driver Add START> \n");
     ret = i2c_add_driver(&sec_tune_cmc623_i2c_driver);    // P1_LSJ : DE07 
-    printk("cmc623_init Return value  (%d)\n", ret);
+    // printk("cmc623_init Return value  (%d)\n", ret);
 	
 	ove_wq = create_singlethread_workqueue("ove_wq");
 	INIT_WORK(&work_ove, ove_workqueue_func);
 
 //	ret = cmc623_gamma_set();                             // P1_LSJ : DE19
 //    printk("cmc623_gamma_set Return value  (%d)\n", ret);
-    printk("<sec_tune_cmc623_i2c_driver Add END>   \n");
+    // printk("<sec_tune_cmc623_i2c_driver Add END>   \n");
 
 	return ret;
 }
@@ -2285,9 +2285,9 @@ struct platform_driver sec_tune_cmc623 =  {
 static int __init cmc623_init(void)
 {
 
-    printk("**************************************\n");
-    printk("**** < cmc623_init  >               **\n");
-    printk("**************************************\n");
+    // printk("**************************************\n");
+    // printk("**** < cmc623_init  >               **\n");
+    // printk("**************************************\n");
 
 	return platform_driver_register(&sec_tune_cmc623);
 }

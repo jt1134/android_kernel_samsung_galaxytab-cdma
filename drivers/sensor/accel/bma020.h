@@ -1,13 +1,16 @@
+
+/*
+ * This software program is licensed subject to the GNU General Public License
+ * (GPL).Version 2,June 1991, available at http://www.fsf.org/copyleft/gpl.html
+
+ * (C) Copyright 2010 Bosch Sensortec GmbH
+ * All Rights Reserved
+ */
+
 #ifndef __BMA020_H__
 #define __BMA020_H__
 
 #include <linux/earlysuspend.h>
-#include <linux/workqueue.h>
-#include <linux/wakelock.h>
-#include <linux/timer.h>
-#include <linux/mutex.h>
-#include <linux/hrtimer.h>
-#include <linux/input.h>
 
 /*********** for debug **********************************************************/
 #if 0 
@@ -36,13 +39,16 @@
 
 
 /* BMA150 IOCTL */
-#define BMA150_IOC_MAGIC 				'B'
-#define BMA150_CALIBRATION				_IOW(BMA150_IOC_MAGIC,2,unsigned char)
-#define BMA150_SET_RANGE            	_IOWR(BMA150_IOC_MAGIC,4, unsigned char)
-#define BMA150_SET_MODE             	_IOWR(BMA150_IOC_MAGIC,6, unsigned char)
-#define BMA150_SET_BANDWIDTH            _IOWR(BMA150_IOC_MAGIC,8, unsigned char)
-#define BMA150_READ_ACCEL_XYZ           _IOWR(BMA150_IOC_MAGIC,46,short)
-#define BMA150_IOC_MAXNR            	48
+
+#define BMA020_IOC_MAGIC 				'a'
+
+#define BMA020_CALIBRATION				_IOW(BMA020_IOC_MAGIC,2,unsigned char)
+#define BMA020_SET_RANGE            	_IOWR(BMA020_IOC_MAGIC,4, unsigned char)
+#define BMA020_SET_MODE             	_IOWR(BMA020_IOC_MAGIC,6, unsigned char)
+#define BMA020_SET_BANDWIDTH            _IOWR(BMA020_IOC_MAGIC,8, unsigned char)
+#define BMA020_READ_ACCEL_XYZ           _IOWR(BMA020_IOC_MAGIC,46,short)
+
+#define BMA020_IOC_MAXNR            	48
 
 #define DEBUG							0
 
@@ -151,14 +157,6 @@ typedef struct {
 	BMA020_RD_FUNC_PTR;		  	/**< function pointer to the SPI/I2C read function */
 	void (*delay_msec)( MDELAY_DATA_TYPE ); /**< function pointer to a pause in mili seconds function */
 	struct early_suspend early_suspend;		/**< suspend function */
-
-   	struct work_struct work_acc;
-	struct hrtimer timer;
-	ktime_t acc_poll_delay;
-	u8 state;
-	struct mutex power_lock;
-	struct workqueue_struct *wq;
-	struct input_dev *acc_input_dev;
 } bma020_t;
 
 

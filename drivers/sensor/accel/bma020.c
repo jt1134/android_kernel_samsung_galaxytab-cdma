@@ -1,4 +1,12 @@
 
+/*
+ * This software program is licensed subject to the GNU General Public License
+ * (GPL).Version 2,June 1991, available at http://www.fsf.org/copyleft/gpl.html
+
+ * (C) Copyright 2010 Bosch Sensortec GmbH
+ * All Rights Reserved
+ */
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include "bma020.h"
@@ -21,7 +29,7 @@ int bma020_init(bma020_t *bma020)
 	p_bma020->ml_version = BMA020_GET_BITSLICE(data, ML_VERSION);	/* get ML Version */
 	p_bma020->al_version = BMA020_GET_BITSLICE(data, AL_VERSION);	/* get AL Version */
 	
-	printk("chip_id=%d",p_bma020->chip_id);	  
+	printk("chip_id=%d\n",p_bma020->chip_id);	  
 
 	return comres;
 

@@ -1263,8 +1263,8 @@ int init_ap_profile_from_string(char *param_str, struct ap_profile *ap_cfg)
 	char *str_ptr = param_str;
 	char sub_cmd[16];
 	int ret = 0;
-	uint8 sec[SEC_LEN];
 #ifdef NEW_AP_INTERFACE
+	uint8 sec[SEC_LEN];
 	uint8 wepkey[KEY_LEN];
 	int i, enc;
 	struct mflist *maclist = 0;
@@ -1288,7 +1288,13 @@ int init_ap_profile_from_string(char *param_str, struct ap_profile *ap_cfg)
 	
 	ret = get_parmeter_from_string(&str_ptr, "SSID=", PTYPE_STRING, ap_cfg->ssid, SSID_LEN);
 
-	ret |= get_parmeter_from_string(&str_ptr, "SEC=", PTYPE_STRING,  sec, SEC_LEN);
+	ret |= get_parmeter_from_string(&str_ptr, "SEC=", PTYPE_STRING,
+#ifdef NEW_AP_INTERFACE
+	sec,
+#else
+	ap_cfg->sec,
+#endif
+	SEC_LEN);
 
 	ret |= get_parmeter_from_string(&str_ptr, "KEY=", PTYPE_STRING,  ap_cfg->key, KEY_LEN);
 

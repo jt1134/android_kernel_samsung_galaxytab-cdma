@@ -1,6 +1,7 @@
 *.builtin
 *.cmd
 *.ko
+*.lzma
 *.o
 *.order
 .config

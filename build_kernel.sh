@@ -2,9 +2,6 @@
 
 TREE="device/samsung/vzwtab"
 
-#SRSLYWTF
-mv .git DONTLOOKATME
-
 make clean mrproper
 make ARCH=arm p1_defconfig
 
@@ -16,6 +13,4 @@ done
 
 make -j8
 cp arch/arm/boot/zImage ../../../"$TREE"/kernel
-
-mv DONTLOOKATME .git
 

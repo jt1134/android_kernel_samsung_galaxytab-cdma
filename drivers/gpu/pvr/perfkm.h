@@ -1,6 +1,6 @@
 /**********************************************************************
  *
- * Copyright(c) 2008 Imagination Technologies Ltd. All rights reserved.
+ * Copyright (C) Imagination Technologies Ltd. All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,20 +24,13 @@
  *
  ******************************************************************************/
 
-#ifndef __REGPATHS_H__
-#define __REGPATHS_H__
+#ifndef _PERFKM_H_
+#define _PERFKM_H_
 
-#define POWERVR_REG_ROOT 	   			"Drivers\\Display\\PowerVR"
-#define POWERVR_CHIP_KEY				"\\SGX1\\"
+#include "img_types.h"
 
-#define POWERVR_EURASIA_KEY				"PowerVREurasia\\"
-
-#define POWERVR_SERVICES_KEY			"\\Registry\\Machine\\System\\CurrentControlSet\\Services\\PowerVR\\"
-
-#define PVRSRV_REGISTRY_ROOT			POWERVR_EURASIA_KEY "HWSettings\\PVRSRVKM"
-
-
-#define MAX_REG_STRING_SIZE 128
-
+#define PERFINIT()
+#define PERFDEINIT()
 
 #endif 
+

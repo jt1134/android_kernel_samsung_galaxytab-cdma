@@ -1240,15 +1240,15 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
 
 #if (UMS_DISK_LUNS > 1) // 2 : internal & external SD
     case UMS_CDROM_LUNS:
-        strlcpy(product_disk_id, "SPH-P100", 9);
+        strlcpy(product_disk_id, "SCH-I800", 9);
         break;
 
     case (UMS_CDROM_LUNS + 1):
-        strlcpy(product_disk_id, "SPH-P100 Card", 14);
+        strlcpy(product_disk_id, "SCH-I800 Card", 14);
         break;
 #else // 1 : external SD
     case UMS_CDROM_LUNS:
-        strlcpy(product_disk_id, "SPH-P100 Card", 14);
+        strlcpy(product_disk_id, "SCH-I800 Card", 14);
         break;
 #endif	
     default:

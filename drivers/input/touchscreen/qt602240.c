@@ -40,9 +40,6 @@ static report_finger_info_t fingerInfo[MAX_USING_FINGER_NUM];
 static bool set_mode_for_ta = false;		// true: TA or USB, false: normal
 static int set_mode_for_amoled = 0;		//0: TFt-LCD, 1: AMOLED
 static int gFirmware_Update_State = FW_UPDATE_READY;
-#if defined (CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-static bool gbfilter =false;
-#endif
 
 extern struct class *sec_class;
 
@@ -210,151 +207,6 @@ static struct bln_implementation p1_touchkey_bln = {
   .disable = p1_touchkey_bln_disable,
 };
 #endif
-
-#if defined(DRIVER_FILTER)
-#if defined (CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-static void equalize_coordinate(bool detect, u8 id, u16 *px, u16 *py)
-{
-    static int tcount[MAX_USING_FINGER_NUM] = { 0, };
-    static u16 pre_x[MAX_USING_FINGER_NUM][4] = {{0}, };
-    static u16 pre_y[MAX_USING_FINGER_NUM][4] = {{0}, };
-    int coff[4] = {0,};
-    int distance = 0;
-
-    if(detect)
-    {
-        tcount[id] = 0;
-    }
-
-    pre_x[id][tcount[id]%4] = *px;
-    pre_y[id][tcount[id]%4] = *py;
-
-    if(gbfilter)
-    {
-         if(tcount[id] >3)
-        {
-            *px = (u16)((*px + pre_x[id][(tcount[id]-1)%4] + pre_x[id][(tcount[id]-2)%4] + pre_x[id][(tcount[id]-3)%4] )/4);
-            *py = (u16)((*py+ pre_y[id][(tcount[id]-1)%4] + pre_y[id][(tcount[id]-2)%4]+ pre_y[id][(tcount[id]-3)%4])/4);
-        }
-        else switch(tcount[id])
-        {
-            case 2:
-            {
-                *px = (u16)((*px + pre_x[id][(tcount[id]-1)%4])>>1);
-                *py = (u16)((*py + pre_y[id][(tcount[id]-1)%4])>>1);
-                break;
-            }
-
-            case 3:
-            {
-                *px = (u16)((*px + pre_x[id][(tcount[id]-1)%4] + pre_x[id][(tcount[id]-2)%4])/3);
-                *py = (u16)((*py + pre_y[id][(tcount[id]-1)%4] + pre_y[id][(tcount[id]-2)%4])/3);
-                break;
-            }
-
-            default:
-                break;
-        }
-
-    }
-    else if(tcount[id] >3)
-    {
-        {
-            distance = abs(pre_x[id][(tcount[id]-1)%4] - *px) + abs(pre_y[id][(tcount[id]-1)%4] - *py);
-
-            coff[0] = (u8)(2 + distance/5);
-            if(coff[0] < 8)
-            {
-                coff[0] = max(2, coff[0]);
-                coff[1] = min((8 - coff[0]), (coff[0]>>1)+1);
-                coff[2] = min((8 - coff[0] - coff[1]), (coff[1]>>1)+1);
-                coff[3] = 8 - coff[0] - coff[1] - coff[2];
-
-    //            printk(KERN_DEBUG "[TSP] %d, %d, %d, %d \n", coff[0], coff[1], coff[2], coff[3]);
-
-                *px = (u16)((*px*(coff[0]) + pre_x[id][(tcount[id]-1)%4]*(coff[1])
-                    + pre_x[id][(tcount[id]-2)%4]*(coff[2]) + pre_x[id][(tcount[id]-3)%4]*(coff[3]))/8);
-                *py = (u16)((*py*(coff[0]) + pre_y[id][(tcount[id]-1)%4]*(coff[1])
-                    + pre_y[id][(tcount[id]-2)%4]*(coff[2]) + pre_y[id][(tcount[id]-3)%4]*(coff[3]))/8);
-            }
-            else
-            {
-                *px = (u16)((*px*4 + pre_x[id][(tcount[id]-1)%4])/5);
-                *py = (u16)((*py*4 + pre_y[id][(tcount[id]-1)%4])/5);
-            }
-        }
-     }
-    tcount[id]++;
-}
-
-#else   //CONFIG_TARGET_LOCALE_KOR
-static void equalize_coordinate(bool detect, u8 id, u16 *px, u16 *py)
-{
-    static int tcount[MAX_USING_FINGER_NUM] = { 0, };
-    static u16 pre_x[MAX_USING_FINGER_NUM][4] = {{0}, };
-    static u16 pre_y[MAX_USING_FINGER_NUM][4] = {{0}, };
-    int coff[4] = {0,};
-    int distance = 0;
-
-    if(detect)
-    {
-        tcount[id] = 0;
-    }
-
-    pre_x[id][tcount[id]%4] = *px;
-    pre_y[id][tcount[id]%4] = *py;
-
-    if(tcount[id] >3)
-    {
-        distance = abs(pre_x[id][(tcount[id]-1)%4] - *px) + abs(pre_y[id][(tcount[id]-1)%4] - *py);
-
-        coff[0] = (u8)(4 + distance/5);
-        if(coff[0] < 8)
-        {
-            coff[0] = max(4, coff[0]);
-            coff[1] = min((10 - coff[0]), (coff[0]>>1)+1);
-            coff[2] = min((10 - coff[0] - coff[1]), (coff[1]>>1)+1);
-            coff[3] = 10 - coff[0] - coff[1] - coff[2];
-
-//            printk(KERN_DEBUG "[TSP] %d, %d, %d, %d \n", coff[0], coff[1], coff[2], coff[3]);
-
-            *px = (u16)((*px*(coff[0]) + pre_x[id][(tcount[id]-1)%4]*(coff[1])
-                + pre_x[id][(tcount[id]-2)%4]*(coff[2]) + pre_x[id][(tcount[id]-3)%4]*(coff[3]))/10);
-            *py = (u16)((*py*(coff[0]) + pre_y[id][(tcount[id]-1)%4]*(coff[1])
-                + pre_y[id][(tcount[id]-2)%4]*(coff[2]) + pre_y[id][(tcount[id]-3)%4]*(coff[3]))/10);
-        }
-        else
-        {
-            *px = (u16)((*px*4 + pre_x[id][(tcount[id]-1)%4])/5);
-            *py = (u16)((*py*4 + pre_y[id][(tcount[id]-1)%4])/5);
-        }
-    }
-#if 0
-    else switch(tcount[id])
-    {
-        case 2:
-        {
-            *px = (u16)((*px + pre_x[id][(tcount[id]-1)%4])>>1);
-            *py = (u16)((*py + pre_y[id][(tcount[id]-1)%4])>>1);
-            break;
-        }
-
-        case 3:
-        {
-            *px = (u16)((*px + pre_x[id][(tcount[id]-1)%4] + pre_x[id][(tcount[id]-2)%4])/3);
-            *py = (u16)((*py + pre_y[id][(tcount[id]-1)%4] + pre_y[id][(tcount[id]-2)%4])/3);
-            break;
-        }
-
-        default:
-            break;
-    }
-#endif
-
-    tcount[id]++;
-}
-#endif
-#endif  //DRIVER_FILTER
 
 static void release_all_fingers(struct input_dev *input_dev)
 {
@@ -531,11 +383,7 @@ static int QT602240_Multitouch_Config_Init(struct qt602240_data *data)
     touchscreen_config.mrgtimeout = 0x00;
     touchscreen_config.movhysti = 16;   //0x1;    // Move hysteresis, initial
     touchscreen_config.movhystn = 10;  //0x1     // Move hysteresis, next
-#if defined(CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-    touchscreen_config.movfilter = 0x0c;              // Filter Limit[6:4] , Adapt threshold [3:0]
-#else
     touchscreen_config.movfilter = 0x0b;              // Filter Limit[6:4] , Adapt threshold [3:0]
-#endif
     touchscreen_config.numtouch= 0x05;
     touchscreen_config.tchdi = 0x02;
     touchscreen_config.mrghyst = 0x5;               // Merge hysteresis
@@ -554,11 +402,7 @@ static int QT602240_Multitouch_Config_Init(struct qt602240_data *data)
     touchscreen_config.xedgedist = 0x00;
     touchscreen_config.yedgectrl = 0x00;
     touchscreen_config.yedgedist = 0x00;
-#ifdef CONFIG_TARGET_LOCALE_USAGSM
-    touchscreen_config.jumplimit = 18;
-#else
     touchscreen_config.jumplimit = 10;            // ??*8
-#endif
 
     return (qt602240_reg_write(data, TOUCH_MULTITOUCHSCREEN_T9, (void *) &touchscreen_config));
 }
@@ -607,11 +451,7 @@ static int QT602240_Noise_Config_Init(struct qt602240_data *data)
 
 //    int version = data->info->version;
     //0x8 : Enable Median filter, 0x4 : Enable Frequency hopping, 0x1 : Enable
-#if defined(CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
     noise_suppression_config.ctrl = 0x0d;    //Median filter off, report enable
-#else
-    noise_suppression_config.ctrl = 0x0d;    //Median filter off, report enable
-#endif
     noise_suppression_config.reserved = 0;
     noise_suppression_config.reserved1 = 0;
     noise_suppression_config.gcaful1 = 0;        // Upper limit for the GCAF
@@ -621,19 +461,11 @@ static int QT602240_Noise_Config_Init(struct qt602240_data *data)
     noise_suppression_config.actvgcafvalid = 3;//0x0f;   //Minium number of samples in active mode
     noise_suppression_config.noisethr = 20;       //0x0f;  // Threshold for the noise signal
     noise_suppression_config.freqhopscale = 0x00;//0x1e;
-#if defined(CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-    noise_suppression_config.freq[0] = 11;
-    noise_suppression_config.freq[1] = 15;
-    noise_suppression_config.freq[2] = 36;
-    noise_suppression_config.freq[3] = 45;
-    noise_suppression_config.freq[4] = 55;
-#else
     noise_suppression_config.freq[0] = 10;
     noise_suppression_config.freq[1] = 15;
     noise_suppression_config.freq[2] = 20;
     noise_suppression_config.freq[3] = 25;
     noise_suppression_config.freq[4] = 30;
-#endif
     noise_suppression_config.idlegcafvalid = 3;
 
     /* Write Noise suppression config to chip. */
@@ -649,11 +481,7 @@ static int QT602240_CTE_Config_Init(struct qt602240_data *data)
     cte_config.cmd = 0x00;
     cte_config.mode = 0x02;
     cte_config.idlegcafdepth = 0x8;//0x20      //Size of sampling window in idle acquisition mode
-#if defined(CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
     cte_config.actvgcafdepth = 32;//0x63   //Size of sampling window in active acquisition mode
-#else
-    cte_config.actvgcafdepth = 32;//0x63   //Size of sampling window in active acquisition mode
-#endif
     cte_config.voltage = 0x0a;                    // 0.01 * 10 + 2.7
 
      /* Write CTE config to chip. */
@@ -1199,16 +1027,9 @@ static void qt602240_input_read(struct qt602240_data *data)
 			fingerInfo[id].x= (int16_t)x;
 			fingerInfo[id].y= (int16_t)y;
 			bChangeUpDn= 1;
-#if defined(DRIVER_FILTER)
-			equalize_coordinate(1, id, &fingerInfo[id].x, &fingerInfo[id].y);
-#endif
 		} else if ((touch_status & 0xf0 ) == 0x90 ) {	                      // Detect & Move : 0x80 | 0x10
 			fingerInfo[id].x= (int16_t)x;
 			fingerInfo[id].y= (int16_t)y;
-#if defined(DRIVER_FILTER)
-			equalize_coordinate(0, id, &fingerInfo[id].x, &fingerInfo[id].y);
-#endif
-			//printk(KERN_DEBUG "[TSP] Finger[%d] Move (%d,%d)!\n", id, fingerInfo[id].x, fingerInfo[id].y );
 		}
 		else
 			printk(KERN_DEBUG "[TSP] Unknown state(%x)! \n", touch_status);
@@ -2111,31 +1932,6 @@ static ssize_t key_threshold_store(struct device *dev, struct device_attribute *
 static DEVICE_ATTR(firmware1, S_IRUGO | S_IWUSR, firmware1_show, firmware1_store);
 static DEVICE_ATTR(key_threshold, S_IRUGO | S_IWUSR, key_threshold_show, key_threshold_store);
 
-#if defined (CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-static ssize_t tsp_filter_store(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
-{
-    int i, ret =0;
-    if(sscanf(buf,"%d",&i)==1)
-    {
-        if( i == 0x1)
-        {
-            gbfilter = true;
-        }
-        else
-        {
-            gbfilter = false;
-        }
-    }
-    else
-        printk(KERN_DEBUG "[TSP] threshold write error\n");
-
-    return size;
-}
-//static DEVICE_ATTR(tsp_filter, S_IRUGO | S_IWUSR, NULL, tsp_filter_store);
-static DEVICE_ATTR(tsp_filter, S_IRUGO | S_IWUSR | S_IWOTH | S_IXOTH, NULL, tsp_filter_store);
-#endif
-
 static int __devinit qt602240_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
 {
@@ -2262,13 +2058,6 @@ static int __devinit qt602240_probe(struct i2c_client *client,
     {
     	pr_err("Failed to create device file(%s)!\n", dev_attr_key_threshold.attr.name);
     }
-
-#if defined (CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-    if (device_create_file(ts_dev, &dev_attr_tsp_filter) < 0)
-    {
-        pr_err("Failed to create device file(%s)!\n", dev_attr_tsp_filter.attr.name);
-    }
-#endif
 
 #ifdef ENABLE_NOISE_TEST_MODE
     qt602240_noise_test = device_create(sec_class, NULL, 0, NULL, "qt602240_noise_test");

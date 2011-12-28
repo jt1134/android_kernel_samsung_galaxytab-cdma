@@ -173,13 +173,6 @@ void wm8994_set_fmradio_speaker(struct snd_soc_codec *codec);
 void wm8994_set_fmradio_headset_mix(struct snd_soc_codec *codec);
 void wm8994_set_fmradio_speaker_mix(struct snd_soc_codec *codec);
 void wm8994_set_fmradio_speaker_headset_mix(struct snd_soc_codec *codec);
-#ifdef CONFIG_TARGET_LOCALE_KOR
-void wm8994_set_voipcall_receiver(struct snd_soc_codec *codec);
-void wm8994_set_voipcall_headphone(struct snd_soc_codec *codec);
-void wm8994_set_voipcall_headset(struct snd_soc_codec *codec);
-void wm8994_set_voipcall_speaker(struct snd_soc_codec *codec);
-void wm8994_set_voipcall_bluetooth(struct snd_soc_codec *codec);
-#endif
 #if defined WM8994_REGISTER_DUMP
 void wm8994_register_dump(struct snd_soc_codec *codec);
 #endif

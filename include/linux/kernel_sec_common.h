@@ -10,7 +10,6 @@
 
 // MAGIC_CODE in LOKE
 // you have to use this vitrual address with consideration
-//#define LOKE_BOOT_USB_DWNLD_V_ADDR  0xC1000000
 #define LOKE_BOOT_USB_DWNLD_V_ADDR  0xD1000000
 #define LOKE_BOOT_USB_DWNLDMAGIC_NO 0x66262564
 
@@ -33,7 +32,7 @@
 // #define S5P_INFORM7 		S5P_CLKREG(0xF01C)
 
 //WDOG register
-#define S3C_PA_WDT                  0xE2700000		
+//#define S3C_PA_WDT                  0xE2700000		
 
 // klaatu - schedule log
 #define SCHED_LOG_MAX 2000
@@ -149,22 +148,6 @@ typedef enum
 	UPLOAD_CAUSE_CP_ERROR_FATAL = 0x000000CC,
     UPLOAD_CAUSE_USER_FAULT 	= 0x0000002F,
 }kernel_sec_upload_cause_type;
-
-#ifdef CONFIG_TARGET_LOCALE_KOR// klaatu
-#ifdef CONFIG_KERNEL_DEBUG_SEC
-typedef struct {
-	char Magic[4];
-	char BuildRev[12];
-	char BuildDate[12];
-	char BuildTime[9];
-	void *Excp_reserve1;
-	void *Excp_reserve2;
-	void *Excp_reserve3;
-	void *Excp_reserve4;
-}gExcpDebugInfo_t;
-
-#endif /* CONFIG_KERNEL_DEBUG_SEC */
-#endif /* CONFIG_TARGET_LOCALE_KOR */
 
 #define KERNEL_SEC_UPLOAD_CAUSE_MASK     0x000000FF
 #define KERNEL_SEC_UPLOAD_AUTOTEST_BIT   31

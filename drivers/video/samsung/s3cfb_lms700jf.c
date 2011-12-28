@@ -28,7 +28,6 @@
 #include <linux/regulator/consumer.h>
 
 #include <plat/gpio-cfg.h>
-//#include <plat/regs-lcd.h>
 
 #include <mach/gpio-p1.h>
 
@@ -95,8 +94,6 @@ extern int s3c_adc_get_adc_data(int channel);
 
 extern unsigned int HWREV;
 
-//extern unsigned int get_battery_level(void);
-//extern unsigned int is_charging_enabled(void);
 extern void cmc623_cabc_enable(int enable);
 extern void cmc623_autobrightness_enable(int enable);
 
@@ -104,13 +101,6 @@ struct s5p_lcd{
 	struct platform_device *pdev;
 	struct lcd_device *lcd_dev;
 };
-
-#if 0
-#ifdef GAMMASET_CONTROL
-struct class *gammaset_class;
-struct device *switch_gammaset_dev;
-#endif
-#endif
 
 #ifdef ACL_ENABLE
 int cabc_enable = 0;
@@ -139,33 +129,6 @@ static struct lms600_state_type lms700_state = {
 	.powered_up = TRUE,
 };
 
-
-#if 0
-int IsLDIEnabled(void)
-{
-	return ldi_enable;
-}
-EXPORT_SYMBOL(IsLDIEnabled);
-
-
-static void SetLDIEnabledFlag(int OnOff)
-{
-	ldi_enable = OnOff;
-}
-#endif
-
-#if 0
-void tl2796_ldi_init(void)
-{
-	s6e63m0_panel_send_sequence(s6e63m0_SEQ_SETTING);
-	s6e63m0_panel_send_sequence(s6e63m0_SEQ_STANDBY_OFF);
-
-	SetLDIEnabledFlag(1);
-	printk(KERN_DEBUG "LDI enable ok\n");
-	dev_dbg(lcd.lcd_dev,"%s::%d -> ldi initialized\n",__func__,__LINE__);	
-}
-#endif
-
 void lms700_powerup(void)
 {
 	int ret;
@@ -181,20 +144,9 @@ void lms700_powerup(void)
 		if(ret<0)
 			printk(KERN_ERR "%s: is_enabled() failed for regulator_lvds33: %d\n", __func__, ret);
 
-	//#if !defined(CONFIG_TARGET_LOCALE_LTN)  // CYS_ 2010.07.02 for Camera Preview
-	//	if(HWREV <= 10)		// MIDAS[2010.09.14] MLCD_ON control below rev0.4 (EUR) or rev0.8(KOR)
-	//		gpio_set_value(GPIO_MLCD_ON, 1);
-	//#endif
-
 		gpio_set_value(GPIO_LCD_LDO_EN, 1);		//backlight & LCD
 
-#if defined(CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-		if(HWREV >= 13)		// above rev0.7 (EUR)
-#elif defined(CONFIG_TARGET_LOCALE_KOR)
-		if(HWREV >= 13)		// above rev1.1 (KOR)
-#else
 		if(1)
-#endif
 			{
 			msleep(150);		// waiting LCD turned on
 			gpio_set_value(GPIO_LVDS_SHDN, 1);
@@ -225,23 +177,11 @@ void lms700_powerdown(void)
 	if(lms700_state.powered_up)
 		{
 		// Disable LDOs
-#if defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-		if(HWREV >= 13)		// above rev0.7 (EUR)
-#elif defined(CONFIG_TARGET_LOCALE_KOR)
-		if(HWREV >= 13)		// above rev1.1 (KOR)
-#endif
-			{
-			gpio_set_value(GPIO_LVDS_SHDN, 0);
-			}
+		gpio_set_value(GPIO_LVDS_SHDN, 0);
 		msleep(20);
 		
 		gpio_set_value(GPIO_LCD_LDO_EN, 0);
 		msleep(150);
-
-	//#if !defined(CONFIG_TARGET_LOCALE_LTN) // CYS_ 2010.07.02 for Camera Preview
-	//	if(HWREV <= 10)		// MIDAS[2010.09.14] MLCD_ON control below rev0.4 (EUR) or rev0.8(KOR)
-	//		gpio_set_value(GPIO_MLCD_ON, 0);
-	//#endif
 
 		ret = regulator_disable(regulator_lvds33);
 		if(ret<0)
@@ -256,28 +196,6 @@ void lms700_powerdown(void)
 }
 EXPORT_SYMBOL(lms700_powerdown);
 
-#if 0
-void tl2796_ldi_enable(void)
-{
-}
-
-void tl2796_ldi_disable(void)
-{
-	s6e63m0_panel_send_sequence(s6e63m0_SEQ_STANDBY_ON);
-	s6e63m0_panel_send_sequence(s6e63m0_SEQ_DISPLAY_OFF);
-
-	SetLDIEnabledFlag(0);
-	printk(KERN_DEBUG "LDI disable ok\n");
-	dev_dbg(&lcd.lcd_dev->dev,"%s::%d -> ldi disabled\n",__func__,__LINE__);	
-}
-
-void s3cfb_set_lcd_info(struct s3cfb_global *ctrl)
-{
-	s6e63m0.init_ldi = NULL;
-	ctrl->lcd = &s6e63m0;
-}
-#endif
-
 //mkh:lcd operations and functions
 int s5p_lcd_set_power(struct lcd_device *ld, int power)
 {
@@ -288,12 +206,10 @@ int s5p_lcd_set_power(struct lcd_device *ld, int power)
 	if(power)
 	{
 		lms700_powerup();
-		//s6e63m0_panel_send_sequence(s6e63m0_SEQ_DISPLAY_ON);
 	}
 	else
 	{
 		lms700_powerdown();
-		//s6e63m0_panel_send_sequence(s6e63m0_SEQ_DISPLAY_OFF);
 	}
 
 	return 0;
@@ -326,76 +242,8 @@ static ssize_t cabcset_file_cmd_store(struct device *dev, struct device_attribut
 
 	printk(KERN_NOTICE "%s:%d\n", __func__, enable);
 
-	//printk(KERN_INFO "[acl set] in aclset_file_cmd_store, input value = %d \n", value);
-
 	cmc623_cabc_enable(enable);
 	cabc_enable = enable;
-
-	
-#if 0
-	if(IsLDIEnabled()==0)
-	{
-		printk(KERN_DEBUG "[acl set] return because LDI is disabled, input value = %d \n",value);
-		return size;
-	}
-
-	if(value==1 && acl_enable == 0)
-	{		
-		acl_enable = value;
-		
-		s6e63m0_panel_send_sequence(acl_cutoff_init);
-		msleep(20);
-	
-		if (current_gamma_value ==1)
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[0]); //set 0% ACL
-			cur_acl = 0;
-			//printk(" ACL_cutoff_set Percentage : 0!!\n");
-		}
-		else if(current_gamma_value ==2)
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[1]); //set 12% ACL
-			cur_acl = 12;
-			//printk(" ACL_cutoff_set Percentage : 12!!\n");
-		}
-		else if(current_gamma_value ==3)
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[2]); //set 22% ACL
-			cur_acl = 22;
-			//printk(" ACL_cutoff_set Percentage : 22!!\n");
-		}
-		else if(current_gamma_value ==4)
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[3]); //set 30% ACL
-			cur_acl = 30;
-			//printk(" ACL_cutoff_set Percentage : 30!!\n");
-		}
-		else if(current_gamma_value ==5)
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[4]); //set 35% ACL
-			cur_acl = 35;
-			//printk(" ACL_cutoff_set Percentage : 35!!\n");
-		}
-		else
-		{
-			s6e63m0_panel_send_sequence(ACL_cutoff_set[5]); //set 40% ACL
-			cur_acl = 40;
-			//printk(" ACL_cutoff_set Percentage : 40!!\n");
-		}
-	}
-	else if(value==0 && acl_enable == 1)
-	{
-		acl_enable = value;
-		
-		//ACL Off
-		s6e63m0_panel_send_sequence(ACL_cutoff_set[0]); //ACL OFF
-		//printk(" ACL_cutoff_set Percentage : 0!!\n");
-		cur_acl  = 0;
-	}
-	else
-		printk("\naclset_file_cmd_store value is same : value(%d)\n",value);
-
-#endif
 
 	return size;
 }
@@ -406,15 +254,8 @@ static DEVICE_ATTR(cabcset_file_cmd,0664, cabcset_file_cmd_show, cabcset_file_cm
 
 static void lms700_shutdown(struct platform_device *dev)
 {
-	//printk("%s\n", __func__);
-	
 	// Disable LDOs
-#if defined(CONFIG_MACH_P1) && defined(CONFIG_TARGET_LOCALE_EUR) || defined(CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined(CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-	if(HWREV >= 13)		// above rev0.7
-#endif
-		{
-		gpio_set_value(GPIO_LVDS_SHDN, 0);
-		}
+	gpio_set_value(GPIO_LVDS_SHDN, 0);
 	gpio_set_value(GPIO_LCD_LDO_EN, 0);
 }
 
@@ -546,23 +387,6 @@ static int __init lms700_probe(struct platform_device *pdev)
 	if(regulator_enable(regulator_lvds33))	// default enable
 		printk(KERN_ERR "%s: is_enabled() failed for regulator_lvds33\n", __func__);
 
-//        SetLDIEnabledFlag(1);
-
-#if 0
-#ifdef GAMMASET_CONTROL //for 1.9/2.2 gamma control from platform
-	gammaset_class = class_create(THIS_MODULE, "gammaset");
-	if (IS_ERR(gammaset_class))
-		pr_err("Failed to create class(gammaset_class)!\n");
-
-	switch_gammaset_dev = device_create(gammaset_class, NULL, 0, NULL, "switch_gammaset");
-	if (IS_ERR(switch_gammaset_dev))
-		pr_err("Failed to create device(switch_gammaset_dev)!\n");
-
-	if (device_create_file(switch_gammaset_dev, &dev_attr_gammaset_file_cmd) < 0)
-		pr_err("Failed to create device file(%s)!\n", dev_attr_gammaset_file_cmd.attr.name);
-#endif	
-#endif
-
 	cabc_class = class_create(THIS_MODULE, "cabcset");
 	if (IS_ERR(cabc_class))
 		pr_err("Failed to create class(acl_class)!\n");
@@ -600,38 +424,7 @@ static int __init lms700_probe(struct platform_device *pdev)
 
 	pr_info("HWREV : %d\n",HWREV);
 	//check lcd type
-//#if defined(CONFIG_TARGET_LOCALE_KOR)
-//	if(HWREV >= 14)		// above rev1.2 (KOR)
-//	{
-//		lcd_type = LCD_TYPE_PLS;
-//		lcd_adc = s3c_adc_get_adc_data(SEC_LCD_ADC_CHANNEL);
-//		pr_info("lcd_adc : %d\n",lcd_adc);
-//	}
-//	else
-//	{
-//		lcd_type = LCD_TYPE_VA;
-//		lcd_adc = 0;
-//	}
-//#elif defined(CONFIG_TARGET_LOCALE_VZW) 
-//	if(HWREV >= 7)		
-//	{
-//		lcd_type = LCD_TYPE_PLS;
-//		lcd_adc = s3c_adc_get_adc_data(SEC_LCD_ADC_CHANNEL);
-//		pr_info("lcd_adc : %d\n",lcd_adc);
-//	}
-//	else
-//	{
-//		lcd_type = LCD_TYPE_VA;
-//		lcd_adc = 0;
-//	}
-#if defined(CONFIG_TARGET_LOCALE_KOR)
-	if(HWREV >= 14)		// above rev1.2 (KOR)
-#elif defined(CONFIG_TARGET_LOCALE_VZW) 
-	if(HWREV >= 7)		
-#else
-// EUR and HKTW and HKTW_FET and USAGSM and etc
 	if(HWREV >= 16)		// above rev1.0 (EUR)
-#endif
 	{
 		lcd_adc = s3c_adc_get_adc_data(SEC_LCD_ADC_CHANNEL);
 		pr_info("lcd_adc : %d\n",lcd_adc);
@@ -673,8 +466,6 @@ static int __init lms700_probe(struct platform_device *pdev)
 		lcd_type = LCD_TYPE_VA;
 		lcd_adc = 0;
 	}
-//#endif
-	//lcd_type = LCD_TYPE_VA;
 
 	switch(lcd_type)
 	{
@@ -802,13 +593,8 @@ static struct platform_driver lms700_driver = {
 	.probe		= lms700_probe,
 	.remove		= __exit_p(lms700_remove),
 	.shutdown	= lms700_shutdown,
-//#ifdef CONFIG_PM
-//	.suspend	= lms700_suspend,
-//	.resume		= lms700_resume,
-//#else
 	.suspend	= NULL,
 	.resume		= NULL,
-//#endif
 };
 
 static int __init lms700_init(void)

@@ -83,19 +83,12 @@ static int g_nMajor = 0;
 /* Needs to be included after the global variables because it uses them */
 #include "VibeOSKernelLinuxTime.c"
 
-/* timed_output */
-//#define VIBRATOR_PERIOD	44540
-//#define VIBRATOR_DUTY	44500
-
 /*Modified for increasing vibrator strength */
 #define VIBRATOR_PERIOD	44640
 #define VIBRATOR_DUTY	42408
 
-
-#if 1
 static int vibrator_period = VIBRATOR_PERIOD;
 static int vibrator_duty = VIBRATOR_DUTY;
-#endif
 
 static struct hrtimer timer;
 static int max_timeout = 5000;
@@ -103,29 +96,7 @@ static int vibrator_value = 0;
 
 unsigned int g_PWM_duty_max = VIBRATOR_PERIOD;
 
-static struct hrtimer  g_vib_timer;
-
 static struct work_struct work_timer;
-
-#if 0
-static ssize_t set_period(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
-{
-    int i, ret =0;
-    if(sscanf(buf,"%d",&i)==1)
-    {
-        vibrator_period = i;
-    }
-    vibrator_duty = vibrator_period - 100;
-
-    pwm_config(Immvib_pwm, vibrator_duty, vibrator_period);
-
-    return size;
-}
-
-static DEVICE_ATTR(vib_period, S_IRUGO | S_IWUSR, NULL, set_period);
-
-#endif
 
 static int set_vibetonz(int timeout)
 {
@@ -138,12 +109,7 @@ static int set_vibetonz(int timeout)
 		s3c_gpio_cfgpin(VIB_PWM, S3C_GPIO_OUTPUT);
             regulator_disable(regulator_motor);
             pwm_disable(Immvib_pwm);
-	    //printk(KERN_DEBUG "[Vibtonz] DISABLE\n");
-#if 0
-            gpio_set_value(VIB_EN, 0);
-#else
             gpio_direction_output(VIB_EN, 0);
-#endif
         }
     }
     else
@@ -155,13 +121,8 @@ static int set_vibetonz(int timeout)
             regulator_enable(regulator_motor);
             pwm_config(Immvib_pwm, vibrator_duty, vibrator_period);
             pwm_enable(Immvib_pwm);
-	    //printk(KERN_DEBUG "[Vibtonz] ENABLE\n");
 
-#if 0
-            gpio_set_value(VIB_EN, 1);
-#else
             gpio_direction_output(VIB_EN, 1);
-#endif
         }
     }
     vibrator_value = timeout;
@@ -207,7 +168,6 @@ static int get_time_for_vibetonz(struct timed_output_dev *dev)
 
 static void enable_vibetonz_from_user(struct timed_output_dev *dev,int value)
 {
-//	printk(KERN_DEBUG "[Vibtonz] %s : time = %d msec \n",__func__,value);
 	hrtimer_cancel(&timer);
 
 	set_vibetonz(value);
@@ -313,8 +273,6 @@ static ssize_t immTest_store(struct device *dev, struct device_attribute *attr, 
 	unsigned long arg1=0, arg2=0;
 
 	unsigned long value = simple_strtoul(buf, &after, 10);
-//	arg1 = (int) (value / 1000);
-//	arg2 = (int) (value % 1000 );
 	printk(KERN_DEBUG "[Vibtonz] value:%ld\n", value);
 
 	return size;
@@ -425,10 +383,6 @@ int init_module(void)
 
 	if (device_create_file(immTest_test, &dev_attr_immTest) < 0)
 		pr_err("Failed to create device file(%s)!\n", dev_attr_immTest.attr.name);
-#if 0
-    if (device_create_file(immTest_test, &dev_attr_vib_period) < 0)
-		pr_err("Failed to create device file(%s)!\n", dev_attr_vib_period.attr.name);
-#endif
 #endif
     vibetonz_start();
     return 0;
@@ -632,8 +586,6 @@ static int ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsig
 #ifdef QA_TEST
     int i;
 #endif
-
-//    printk(KERN_ERR "[Vibtonz] %u \n", cmd);
 
     switch (cmd)
     {

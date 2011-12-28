@@ -104,13 +104,6 @@ void enter_upload_mode(unsigned long val)
 	{
 		if (kernel_sec_viraddr_wdt_reset_reg)
 		{
-		//dump_debug_info_forced_ramd_dump();
-#ifdef CONFIG_KERNEL_DEBUG_SEC
-#ifdef CONFIG_TARGET_LOCALE_KOR
-		local_irq_disable();
-		local_fiq_disable();
-#endif /* CONFIG_TARGET_LOCALE_KOR */
-#endif /* CONFIG_KERNEL_DEBUG_SEC */
 		kernel_sec_set_cp_upload();
 		kernel_sec_save_final_context(); // Save theh final context.
 		kernel_sec_set_upload_cause(UPLOAD_CAUSE_FORCED_UPLOAD);
@@ -402,9 +395,6 @@ static void gpio_keys_report_event(struct gpio_button_data *bdata)
 #ifdef CONFIG_KERNEL_DEBUG_SEC
         static bool first=false;
         static bool second=false;
-#ifdef CONFIG_TARGET_LOCALE_KOR
-        static bool third=false;
-#endif /* CONFIG_TARGET_LOCALE_KOR */
 
         if(state)
         {
@@ -417,17 +407,6 @@ static void gpio_keys_report_event(struct gpio_button_data *bdata)
             {
                 second = true;
             }
-
-/* forced upload should be very quick and on time, omit the timer operation */
-#ifdef CONFIG_TARGET_LOCALE_KOR
-            if(button->code == KEY_POWER)
-            {
-                third = true;
-            }
-
-            if(first&&second&&third)
-                enter_upload_mode();
-#endif /* CONFIG_TARGET_LOCALE_KOR */
 
             /* Entering the forced upload mode should be pressed both volume keys
             before pressing the power key */
@@ -451,12 +430,6 @@ static void gpio_keys_report_event(struct gpio_button_data *bdata)
             {
                 second = false;
             }
-#ifdef CONFIG_TARGET_LOCALE_KOR
-            if(button->code == KEY_POWER)
-            {
-                third = false;
-            }
-#endif /* CONFIG_TARGET_LOCALE_KOR */
         }
 #endif // CONFIG_KERNEL_DEBUG_SEC
 

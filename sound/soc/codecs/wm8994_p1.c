@@ -46,13 +46,8 @@
 #define TUNING_SPKMIXL_ATTEN 0x0 // 22h
 #define TUNING_SPKMIXR_ATTEN 0x0 // 23h
 
-#ifdef CONFIG_TARGET_LOCALE_VZW
-#define TUNING_MP3_SPKR_VOL 0x3D // 27h
-#define TUNING_MP3_SPKL_VOL 0x3D // 26h
-#else
 #define TUNING_MP3_SPKR_VOL 0x3E // 27h
 #define TUNING_MP3_SPKL_VOL 0x3E // 26h
-#endif
 
 #define TUNING_MP3_CLASSD_VOL 0x5 // 25h
 
@@ -2483,8 +2478,6 @@ void wm8994_set_voicecall_common_setting(struct snd_soc_codec *codec)
 
 void wm8994_set_voicecall_receiver(struct snd_soc_codec *codec)
 {
-	struct wm8994_priv *wm8994 = codec->drvdata;
-
 	int val;
 	
 	DEBUG_LOG("set_voicecall_receiver");
@@ -2591,8 +2584,6 @@ void wm8994_set_voicecall_receiver(struct snd_soc_codec *codec)
 
 void wm8994_set_voicecall_headphone(struct snd_soc_codec *codec)
 {
-	struct wm8994_priv *wm8994 = codec->drvdata;
-
 	int val;
 
 	u16 TestReturn1=0;

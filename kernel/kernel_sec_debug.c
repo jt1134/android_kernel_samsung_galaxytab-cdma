@@ -190,8 +190,8 @@ EXPORT_SYMBOL(kernel_sec_map_wdog_reg);
 
 void kernel_sec_set_upload_cause(kernel_sec_upload_cause_type uploadType)
 {
-	gkernel_sec_upload_cause=uploadType;
 	unsigned int temp;
+	gkernel_sec_upload_cause=uploadType;
 
     switch (uploadType){
         case UPLOAD_CAUSE_INIT:

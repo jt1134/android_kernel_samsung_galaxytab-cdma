@@ -27,13 +27,8 @@
 #include <linux/earlysuspend.h>
 #endif
 
-//#define MDNIE_TUNING
-//#define CAMERA_FLASH_CONTROL
 #define KEY_LED_CONTROL
 #define ENABLE_NOISE_TEST_MODE
-#if defined(CONFIG_TARGET_LOCALE_KOR) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-#define DRIVER_FILTER
-#endif
 
 #if defined (KEY_LED_CONTROL)
 // Key LED controller

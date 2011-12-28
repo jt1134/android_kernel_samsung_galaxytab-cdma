@@ -18,10 +18,6 @@
 #include <mach/gpio-p1.h>
 
 
-//#include <mach/fsa9480_i2c.h>
-//#include <mach/max8998_function.h>
-
-
 #define SUBJECT "CONNECTOR_DRIVER"
 
 #define ACC_CONDEV_DBG(format,...)\
@@ -72,12 +68,8 @@ extern void MHD_HW_Reset(void);
 extern void MHD_HW_Off(void);
 extern int MHD_HW_IsOn(void);
 extern int MHD_Read_deviceID(void);
-//extern byte MHD_Bridge_detect(void);
 extern void MHD_INT_clear(void);
 extern void MHD_OUT_EN(void);
-
-//extern byte MHD_Bridge_detect();
-
 
  
 //I2C driver add 20100614  kyungrok
@@ -86,7 +78,6 @@ extern struct i2c_driver SII9234A_i2c_driver;
 extern struct i2c_driver SII9234B_i2c_driver;
 extern struct i2c_driver SII9234C_i2c_driver;
 
-//extern void max8998_ldo3_8_control(int enable, unsigned int flag);
 extern void TVout_LDO_ctrl(int enable);
 
 
@@ -95,7 +86,6 @@ extern void TVout_LDO_ctrl(int enable);
 static struct device *acc_dev;
 
 static struct platform_driver acc_con_driver;
-//static struct timer_list connector_detect_timer; //Not used
 static struct workqueue_struct *acc_con_workqueue;
 static struct work_struct acc_con_work;
 
@@ -108,7 +98,6 @@ static struct work_struct acc_MHD_work;
 
 
 void acc_con_interrupt_init(void);
-//static void acc_con_detect_timer_handler(unsigned long arg); //Not used
 static int connector_detect_change(void);
 
 
@@ -141,7 +130,6 @@ static ssize_t MHD_check_write(struct device *dev, struct device_attribute *attr
 	return size;
 }
 
-//static DEVICE_ATTR(MHD_file, S_IRUGO | S_IWUSR | S_IWOTH | S_IXOTH, MHD_check_read, MHD_check_write);
 static DEVICE_ATTR(MHD_file, S_IRUGO , MHD_check_read, MHD_check_write);
 
 
@@ -165,23 +153,9 @@ static ssize_t acc_check_read(struct device *dev, struct device_attribute *attr,
 		else if(CONNECTED_ACC == ACC_LINEOUT)
 			connected |= (0x1<<4);
 	}
-#if defined (CONFIG_TARGET_LOCALE_KOR)
-//HW rev09 hpd is pull up by vcc1.8PDA   
-	if(HWREV > 11 ) 
-	{
-		if(gpio_get_value(GPIO_HDMI_HPD))
-			connected |= (0x1<<5);
-	}
-#else
-//#if defined (CONFIG_TARGET_LOCALE_EUR)
-//	if(HWREV > 0xC ) //rev0.7 is 0xD
-//	{
-		if(gpio_get_value(GPIO_HDMI_HPD)&& MHD_HW_IsOn())
-			connected |= (0x1<<5);
-//	}
-//#endif	
-#endif
-	//connected = ((DOCK_STATE<<0)|(CONNECTED_DOCK<<4)|(ACC_STATE<<8)|(CONNECTED_ACC<<12));
+	if(gpio_get_value(GPIO_HDMI_HPD)&& MHD_HW_IsOn())
+		connected |= (0x1<<5);
+
 	count = sprintf(buf,"%d\n", connected );
 	ACC_CONDEV_DBG("%x",connected);
 	return count;
@@ -237,14 +211,6 @@ static int connector_detect_change(void)
 	ACC_CONDEV_DBG("ACCESSORY_ID : ADC value = %d\n", adc);
 	return adc;
 }
-
-/* Not used
-static void acc_con_detect_timer_handler(unsigned long arg)
-{
-	ACC_CONDEV_DBG("");
-	acc_con_interrupt_init();
-}
-*/
 
 void acc_dock_check(int dock, int state)	
 {
@@ -407,9 +373,6 @@ void acc_notified(int acc_adc)
 		envp[env_offset] = NULL;
 		if(CONNECTED_ACC == ACC_TVOUT)
 		{
-			//max8998_ldo3_8_control(1,LDO_TV_OUT); //ldo 3,8 on
-			//printk("%s: LDO3_8 is enabled by TV \n", __func__);
-			//msleep(100);
 			TVout_LDO_ctrl(true);
 		}
 		kobject_uevent_env(&acc_dev->kobj, KOBJ_CHANGE, envp);
@@ -433,9 +396,6 @@ void acc_notified(int acc_adc)
 		kobject_uevent_env(&acc_dev->kobj, KOBJ_CHANGE, envp);
 		if(CONNECTED_ACC == ACC_TVOUT)
 		{
-			//msleep(200);
-			//max8998_ldo3_8_control(0,LDO_TV_OUT);  //ldo 3,8 off
-			//printk("%s: LDO3_8 is disabled by TV \n", __func__);
 			TVout_LDO_ctrl(false);
 		}
 		ACC_CONDEV_DBG("%s : %s",env_buf,stat_buf);
@@ -588,31 +548,9 @@ static int acc_con_probe(struct platform_device *pdev)
 	acc_con_workqueue = create_singlethread_workqueue("acc_con_workqueue");
 	acc_con_interrupt_init();
 
-#if defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-	if(HWREV >=0xB)
-	{
 	INIT_WORK(&acc_ID_work, acc_ID_intr_handle);
 	acc_ID_workqueue = create_singlethread_workqueue("acc_ID_workqueue");
 	acc_ID_interrupt_init();
-	}
-#else
-#ifdef CONFIG_TARGET_LOCALE_KOR
-	if(HWREV >=0xA)
-	{
-		INIT_WORK(&acc_ID_work, acc_ID_intr_handle);
-		acc_ID_workqueue = create_singlethread_workqueue("acc_ID_workqueue");
-		acc_ID_interrupt_init();
-	}
-#else
-	INIT_WORK(&acc_ID_work, acc_ID_intr_handle);
-	acc_ID_workqueue = create_singlethread_workqueue("acc_ID_workqueue");
-	acc_ID_interrupt_init();
-#endif
-#endif
-
-	//INIT_WORK(&acc_MHD_work, acc_MHD_intr_handle);
-	//acc_MHD_workqueue = create_singlethread_workqueue("acc_MHD_workqueue");
-	//acc_MHD_interrupt_init();
 
 	if (device_create_file(acc_dev, &dev_attr_MHD_file) < 0)
 		printk("Failed to create device file(%s)!\n", dev_attr_MHD_file.attr.name);
@@ -623,13 +561,6 @@ static int acc_con_probe(struct platform_device *pdev)
         enable_irq_wake(IRQ_ACCESSORY_INT);
         enable_irq_wake(IRQ_DOCK_INT);
 
-/*
-	init_timer(&connector_detect_timer);
-	connector_detect_timer.function = acc_con_detect_timer_handler;
-	connector_detect_timer.expires = DETECTION_INTR_DELAY;
-	add_timer(&connector_detect_timer);
-*/
-	
 	return 0;
 }
 
@@ -653,9 +584,6 @@ static int acc_con_suspend(struct platform_device *pdev, pm_message_t state)
 #ifdef CONFIG_MHL_SII9234	
 	//call MHL deinit
 	MHD_HW_Off();
-	//msleep(120);
-	//max8998_ldo3_8_control(0,LDO_TV_OUT);  //ldo 3,8 off
-	//printk("%s: LDO3_8 is disabled by TV \n", __func__);
 #endif
 
 	return 0;
@@ -666,20 +594,9 @@ static int acc_con_resume(struct platform_device *pdev)
 	ACC_CONDEV_DBG("");
 	if(0 == gpio_get_value(GPIO_ACCESSORY_INT))
 	{
-#if 0
-		if(CONNECTED_DOCK == DOCK_KEYBD)
-		{
-			check_keyboard_dock();
-		}
-		else
-#endif
              if(CONNECTED_DOCK == DOCK_DESK)
 		{
 #ifdef CONFIG_MHL_SII9234		
-			//max8998_ldo3_8_control(1,LDO_TV_OUT); //ldo 3,8 on
-			//printk("%s: LDO3_8 is enabled by TV \n", __func__);
-			//msleep(120);
-			
 			//call MHL init 
 			sii9234_tpi_init();
 #endif
@@ -692,10 +609,6 @@ static int acc_con_resume(struct platform_device *pdev)
 
 static int __init acc_con_init(void)
 {
-#if defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
-	if(HWREV < 0x8)
-		return -1;
-#endif	
 	ACC_CONDEV_DBG("");
 	
 	return platform_driver_register(&acc_con_driver);

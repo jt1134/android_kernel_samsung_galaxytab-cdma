@@ -52,9 +52,6 @@
 
 #include <linux/usb/gadget.h>
 #include <linux/fsa9480.h>
-#if defined(CONFIG_PN544)
-#include <linux/pn544.h>
-#endif
 #include <linux/notifier.h>
 #include <linux/reboot.h>
 #include <linux/wlan_plat.h>
@@ -98,9 +95,6 @@
 #include <linux/i2c/l3g4200d.h>
 #include <../../../drivers/sensor/accel/bma020.h>
 #include <../../../drivers/video/samsung/s3cfb.h>
-#ifdef CONFIG_SAMSUNG_JACK
-#include <linux/sec_jack.h>
-#endif
 #include <linux/input/mxt224.h>
 #include <linux/max17042_battery.h>
 #include <linux/mfd/max8998.h>
@@ -264,9 +258,6 @@ static struct s3c2410_uartcfg crespo_uartcfgs[] __initdata = {
 		.ucon		= S5PV210_UCON_DEFAULT,
 		.ulcon		= S5PV210_ULCON_DEFAULT,
 		.ufcon		= S5PV210_UFCON_DEFAULT,
-#ifdef CONFIG_MACH_HERRING
-		.wake_peer	= herring_bt_uart_wake_peer,
-#endif
 	},
 	{
 		.hwport		= 1,
@@ -1303,23 +1294,6 @@ static struct platform_device s3c_device_i2c13 = {
 	.id			= 13,
 	.dev.platform_data	= &i2c13_platdata,
 };
-
-#if defined(CONFIG_PN544)
-static struct i2c_gpio_platform_data i2c14_platdata = {
-	.sda_pin		= NFC_SDA_18V,
-	.scl_pin		= NFC_SCL_18V,
-	.udelay			= 2,
-	.sda_is_open_drain      = 0,
-	.scl_is_open_drain      = 0,
-	.scl_is_output_only     = 0,
-};
-
-static struct platform_device s3c_device_i2c14 = {
-	.name			= "i2c-gpio",
-	.id			= 14,
-	.dev.platform_data	= &i2c14_platdata,
-};
-#endif
 
 #if defined(CONFIG_KEYBOARD_GPIO)
 static struct gpio_keys_button button_data[] = {
@@ -2596,22 +2570,6 @@ static struct i2c_board_info i2c_devs6[] __initdata = {
 #endif
 };
 
-#if defined(CONFIG_PN544)
-static struct pn544_i2c_platform_data pn544_pdata = {
-	.irq_gpio = NFC_IRQ,
-	.ven_gpio = NFC_EN,
-	.firm_gpio = NFC_FIRM,
-};
-
-static struct i2c_board_info i2c_devs14[] __initdata = {
-	{
-		I2C_BOARD_INFO("pn544", 0x2b),
-		.irq = IRQ_EINT(12),
-		.platform_data = &pn544_pdata,
-	},
-};
-#endif
-
 static int max17042_power_supply_register(struct device *parent,
 	struct power_supply *psy)
 {
@@ -2889,81 +2847,6 @@ static struct platform_device sec_device_btsleep = {
 	.name	= "bt_sleep",
 	.id	= -1,
 };
-
-#ifdef CONFIG_SAMSUNG_JACK
-static struct sec_jack_zone sec_jack_zones[] = {
-	{
-		/* adc == 0, unstable zone, default to 3pole if it stays
-		 * in this range for a half second (20ms delays, 25 samples)
-		 */
-		.adc_high = 0,
-		.delay_ms = 20,
-		.check_count = 25,
-		.jack_type = SEC_HEADSET_3POLE,
-	},
-	{
-		/* 0 < adc <= 1000, unstable zone, default to 3pole if it stays
-		 * in this range for a second (10ms delays, 100 samples)
-		 */
-		.adc_high = 1000,
-		.delay_ms = 10,
-		.check_count = 100,
-		.jack_type = SEC_HEADSET_3POLE,
-	},
-	{
-		/* 1000 < adc <= 2000, unstable zone, default to 4pole if it
-		 * stays in this range for a second (10ms delays, 100 samples)
-		 */
-		.adc_high = 2000,
-		.delay_ms = 10,
-		.check_count = 100,
-		.jack_type = SEC_HEADSET_4POLE,
-	},
-	{
-		/* 2000 < adc <= 3700, 4 pole zone, default to 4pole if it
-		 * stays in this range for 200ms (20ms delays, 10 samples)
-		 */
-		.adc_high = 3700,
-		.delay_ms = 20,
-		.check_count = 10,
-		.jack_type = SEC_HEADSET_4POLE,
-	},
-	{
-		/* adc > 3700, unstable zone, default to 3pole if it stays
-		 * in this range for a second (10ms delays, 100 samples)
-		 */
-		.adc_high = 0x7fffffff,
-		.delay_ms = 10,
-		.check_count = 100,
-		.jack_type = SEC_HEADSET_3POLE,
-	},
-};
-
-static int sec_jack_get_adc_value(void)
-{
-	return s3c_adc_get_adc_data(3);
-}
-
-static void sec_jack_set_micbias_state(bool on)
-{
-	gpio_set_value(GPIO_EAR_MICBIAS_EN, on);
-}
-
-struct sec_jack_platform_data sec_jack_pdata = {
-	.set_micbias_state = sec_jack_set_micbias_state,
-	.get_adc_value = sec_jack_get_adc_value,
-	.zones = sec_jack_zones,
-	.num_zones = ARRAY_SIZE(sec_jack_zones),
-	.det_gpio = GPIO_DET_35,
-	.send_end_gpio = GPIO_EAR_SEND_END,
-};
-
-static struct platform_device sec_device_jack = {
-	.name			= "sec_jack",
-	.id			= 1, /* will be used also for gpio_event id */
-	.dev.platform_data	= &sec_jack_pdata,
-};
-#endif
 
 #ifdef CONFIG_SEC_HEADSET
 static struct sec_jack_port sec_jack_port_info[] = {
@@ -4059,21 +3942,6 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	}, 
-#if defined(CONFIG_PN544)
-	{ /* NFC_SCL_18V - has external pull up resistor */
-		.num	= S5PV210_MP04(4),
-		.cfg	= S3C_GPIO_INPUT,
-		.val	= S3C_GPIO_SETPIN_NONE,
-		.pud	= S3C_GPIO_PULL_NONE,
-		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, { /* NFC_SDA_18V - has external pull up resistor */
-		.num	= S5PV210_MP04(5),
-		.cfg	= S3C_GPIO_INPUT,
-		.val	= S3C_GPIO_SETPIN_NONE,
-		.pud	= S3C_GPIO_PULL_NONE,
-		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, 
-#endif
 	{
 		.num	= S5PV210_MP04(6),
 		.cfg	= S3C_GPIO_OUTPUT,
@@ -6517,7 +6385,7 @@ static struct platform_device *crespo_devices[] __initdata = {
 #ifdef CONFIG_FB_S3C_TL2796
 	&s3c_device_spi_gpio,
 #endif
-#if defined(CONFIG_SAMSUNG_JACK) || defined(CONFIG_SEC_HEADSET)
+#if defined(CONFIG_SEC_HEADSET)
 	&sec_device_jack,
 #endif
 	&s3c_device_i2c0,
@@ -6536,9 +6404,6 @@ static struct platform_device *crespo_devices[] __initdata = {
 	&s3c_device_i2c9,  /* max1704x:fuel_guage */
 	&s3c_device_i2c11,  /* smb136:charger-ic */
 	&s3c_device_i2c13, /*cmc623 mdnie */
-#if defined(CONFIG_PN544)	
-	&s3c_device_i2c14, /* nfc sensor */
-#endif
 	&sec_device_switch,  // samsung switch driver
 
 #ifdef CONFIG_USB_GADGET
@@ -6556,9 +6421,6 @@ static struct platform_device *crespo_devices[] __initdata = {
 
 #ifdef CONFIG_S3C_DEV_HSMMC
 	&s3c_device_hsmmc0,
-#endif
-#ifdef CONFIG_S3C_DEV_HSMMC1
-	&s3c_device_hsmmc1,
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC2
 	&s3c_device_hsmmc2,
@@ -6607,9 +6469,6 @@ static struct platform_device *crespo_devices[] __initdata = {
 #endif
 #endif
 
-#ifdef CONFIG_SND_S5P_RP
-	&s5p_device_rp,
-#endif
 	//cdma modem driver
 	&sec_device_dpram,
 };
@@ -6795,11 +6654,6 @@ static void __init p1_machine_init(void)
 #ifdef CONFIG_ANDROID_PMEM
 	android_pmem_set_platdata();
 #endif
-#ifdef CONFIG_SAMSUNG_JACK
-	/* headset/earjack detection */
-	if (system_rev >= 0x09)
-		gpio_request(GPIO_EAR_MICBIAS_EN, "ear_micbias_enable");
-#endif
 
 	gpio_request(GPIO_TOUCH_EN, "touch en");
 
@@ -6846,11 +6700,6 @@ static void __init p1_machine_init(void)
 	/* cmc623 */
 	i2c_register_board_info(13, i2c_devs13, ARRAY_SIZE(i2c_devs13));
 
-#if defined(CONFIG_PN544)
-	/* nfc sensor */
-	//i2c_register_board_info(14, i2c_devs14, ARRAY_SIZE(i2c_devs14));
-#endif
-
 #ifdef CONFIG_FB_S3C_LVDS
 #if defined(CONFIG_FB_S3C_CMC623)
 		platform_device_register(&cmc623_pwm_backlight);
@@ -6885,9 +6734,6 @@ static void __init p1_machine_init(void)
 
 #ifdef CONFIG_S3C_DEV_HSMMC
 	s5pv210_default_sdhci0();
-#endif
-#ifdef CONFIG_S3C_DEV_HSMMC1
-	s5pv210_default_sdhci1();
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC2
 	s5pv210_default_sdhci2();

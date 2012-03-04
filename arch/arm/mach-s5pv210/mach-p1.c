@@ -397,15 +397,6 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_TEXSTREAM,
 		.paddr = 0,
 	},
-#ifdef CONFIG_WLAN_SAMSUNG_MEMSIZE_BCM
-	[10] = {
-		.id = S3C_MDEV_WIFI,
-		.name = "wifi",
-		.bank = 0,
-		.memsize = CONFIG_WLAN_SAMSUNG_MEMSIZE_BCM * SZ_1K,
-		.paddr = 0,
-	},
-#endif	
 };
 
 /* MAX8998 LDO */
@@ -6290,12 +6281,35 @@ void s3c_config_sleep_gpio(void)
 
 EXPORT_SYMBOL(s3c_config_sleep_gpio);
 
+static struct resource wifi_resources[] = {
+	[0] = {
+		.name	= "bcm4329_wlan_irq",
+		.start	= IRQ_EINT(20),
+		.end	= IRQ_EINT(20),
+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
+	},
+};
+
 static struct wifi_mem_prealloc wifi_mem_array[PREALLOC_WLAN_SEC_NUM] = {
 	{NULL, (WLAN_SECTION_SIZE_0 + PREALLOC_WLAN_SECTION_HEADER)},
 	{NULL, (WLAN_SECTION_SIZE_1 + PREALLOC_WLAN_SECTION_HEADER)},
 	{NULL, (WLAN_SECTION_SIZE_2 + PREALLOC_WLAN_SECTION_HEADER)},
 	{NULL, (WLAN_SECTION_SIZE_3 + PREALLOC_WLAN_SECTION_HEADER)}
 };
+
+static void *crespo_mem_prealloc(int section, unsigned long size)
+{
+	if (section == PREALLOC_WLAN_SEC_NUM)
+		return wlan_static_skb;
+
+	if ((section < 0) || (section > PREALLOC_WLAN_SEC_NUM))
+		return NULL;
+
+	if (wifi_mem_array[section].size < size)
+		return NULL;
+
+	return wifi_mem_array[section].mem_ptr;
+}
 
 int __init crespo_init_wifi_mem(void)
 {
@@ -6333,6 +6347,120 @@ int __init crespo_init_wifi_mem(void)
 
 	return -ENOMEM;
 }
+
+static unsigned int wlan_sdio_on_table[][4] = {
+        {GPIO_WLAN_SDIO_CLK, GPIO_WLAN_SDIO_CLK_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_CMD, GPIO_WLAN_SDIO_CMD_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D0, GPIO_WLAN_SDIO_D0_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D1, GPIO_WLAN_SDIO_D1_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D2, GPIO_WLAN_SDIO_D2_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D3, GPIO_WLAN_SDIO_D3_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+};
+
+static unsigned int wlan_sdio_off_table[][4] = {
+        {GPIO_WLAN_SDIO_CLK, 1, GPIO_LEVEL_LOW, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_CMD, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D0, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D1, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D2, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+        {GPIO_WLAN_SDIO_D3, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
+};
+
+static int wlan_power_en(int onoff)
+{
+	if (onoff) {
+		s3c_gpio_cfgpin(GPIO_WLAN_HOST_WAKE,
+				S3C_GPIO_SFN(GPIO_WLAN_HOST_WAKE_AF));
+		s3c_gpio_setpull(GPIO_WLAN_HOST_WAKE, S3C_GPIO_PULL_DOWN);
+
+		s3c_gpio_cfgpin(GPIO_WLAN_WAKE,
+				S3C_GPIO_SFN(GPIO_WLAN_WAKE_AF));
+		s3c_gpio_setpull(GPIO_WLAN_WAKE, S3C_GPIO_PULL_NONE);
+		gpio_set_value(GPIO_WLAN_WAKE, GPIO_LEVEL_LOW);
+
+		s3c_gpio_cfgpin(GPIO_WLAN_nRST,
+				S3C_GPIO_SFN(GPIO_WLAN_nRST_AF));
+		s3c_gpio_setpull(GPIO_WLAN_nRST, S3C_GPIO_PULL_NONE);
+		gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_HIGH);
+		s3c_gpio_slp_cfgpin(GPIO_WLAN_nRST, S3C_GPIO_SLP_OUT1);
+		s3c_gpio_slp_setpull_updown(GPIO_WLAN_nRST, S3C_GPIO_PULL_NONE);
+
+		s3c_gpio_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(GPIO_WLAN_BT_EN, S3C_GPIO_PULL_NONE);
+		gpio_set_value(GPIO_WLAN_BT_EN, GPIO_LEVEL_HIGH);
+		s3c_gpio_slp_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_SLP_OUT1);
+		s3c_gpio_slp_setpull_updown(GPIO_WLAN_BT_EN,
+					S3C_GPIO_PULL_NONE);
+
+		msleep(80);
+	} else {
+		gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_LOW);
+		s3c_gpio_slp_cfgpin(GPIO_WLAN_nRST, S3C_GPIO_SLP_OUT0);
+		s3c_gpio_slp_setpull_updown(GPIO_WLAN_nRST, S3C_GPIO_PULL_NONE);
+
+		if (gpio_get_value(GPIO_BT_nRST) == 0) {
+			gpio_set_value(GPIO_WLAN_BT_EN, GPIO_LEVEL_LOW);
+			s3c_gpio_slp_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_SLP_OUT0);
+			s3c_gpio_slp_setpull_updown(GPIO_WLAN_BT_EN,
+						S3C_GPIO_PULL_NONE);
+		}
+	}
+	return 0;
+}
+
+static int wlan_reset_en(int onoff)
+{
+	gpio_set_value(GPIO_WLAN_nRST,
+			onoff ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	return 0;
+}
+
+static int wlan_carddetect_en(int onoff)
+{
+	u32 i;
+	u32 sdio;
+
+	if (onoff) {
+		for (i = 0; i < ARRAY_SIZE(wlan_sdio_on_table); i++) {
+			sdio = wlan_sdio_on_table[i][0];
+			s3c_gpio_cfgpin(sdio,
+					S3C_GPIO_SFN(wlan_sdio_on_table[i][1]));
+			s3c_gpio_setpull(sdio, wlan_sdio_on_table[i][3]);
+			if (wlan_sdio_on_table[i][2] != GPIO_LEVEL_NONE)
+				gpio_set_value(sdio, wlan_sdio_on_table[i][2]);
+		}
+	} else {
+		for (i = 0; i < ARRAY_SIZE(wlan_sdio_off_table); i++) {
+			sdio = wlan_sdio_off_table[i][0];
+			s3c_gpio_cfgpin(sdio,
+				S3C_GPIO_SFN(wlan_sdio_off_table[i][1]));
+			s3c_gpio_setpull(sdio, wlan_sdio_off_table[i][3]);
+			if (wlan_sdio_off_table[i][2] != GPIO_LEVEL_NONE)
+				gpio_set_value(sdio, wlan_sdio_off_table[i][2]);
+		}
+	}
+	udelay(5);
+
+	sdhci_s3c_force_presence_change(&s3c_device_hsmmc3);
+	return 0;
+}
+
+static struct wifi_platform_data wifi_pdata = {
+	.set_power		= wlan_power_en,
+	.set_reset		= wlan_reset_en,
+	.set_carddetect		= wlan_carddetect_en,
+	.mem_prealloc		= crespo_mem_prealloc,
+};
+
+static struct platform_device sec_device_wifi = {
+	.name			= "bcm4329_wlan",
+	.id			= 1,
+	.num_resources		= ARRAY_SIZE(wifi_resources),
+	.resource		= wifi_resources,
+	.dev			= {
+		.platform_data = &wifi_pdata,
+	},
+};
 
 static struct platform_device watchdog_device = {
 	.name = "watchdog",
@@ -6460,6 +6588,8 @@ static struct platform_device *crespo_devices[] __initdata = {
 	&sec_device_rfkill,
 	&sec_device_btsleep,
 	&ram_console_device,
+
+	&sec_device_wifi,
 
 #if defined(CONFIG_KEYBOARD_GPIO)
     &gpio_keys_device,
@@ -6930,85 +7060,4 @@ void s3c_config_gpio_alive_table(int array_size, unsigned int (*gpio_table)[4])
 			gpio_set_value(gpio, gpio_table[i][2]);
 	}
 }
-
-static unsigned int wlan_gpio_table[][4] = {	
-	{GPIO_WLAN_nRST, GPIO_WLAN_nRST_AF, GPIO_LEVEL_LOW, S3C_GPIO_PULL_NONE},
-	{GPIO_WLAN_HOST_WAKE, GPIO_WLAN_HOST_WAKE_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_DOWN},
-	{GPIO_WLAN_WAKE, GPIO_WLAN_WAKE_AF, GPIO_LEVEL_LOW, S3C_GPIO_PULL_NONE},
-};
-
-static unsigned int wlan_sdio_on_table[][4] = {
-        {GPIO_WLAN_SDIO_CLK, GPIO_WLAN_SDIO_CLK_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_CMD, GPIO_WLAN_SDIO_CMD_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D0, GPIO_WLAN_SDIO_D0_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D1, GPIO_WLAN_SDIO_D1_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D2, GPIO_WLAN_SDIO_D2_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D3, GPIO_WLAN_SDIO_D3_AF, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-};
-
-static unsigned int wlan_sdio_off_table[][4] = {
-        {GPIO_WLAN_SDIO_CLK, 1, GPIO_LEVEL_LOW, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_CMD, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D0, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D1, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D2, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-        {GPIO_WLAN_SDIO_D3, 0, GPIO_LEVEL_NONE, S3C_GPIO_PULL_NONE},
-};
-
-void wlan_setup_power(int on, int flag)
-{
-	printk(/*KERN_INFO*/ "%s %s", __func__, on ? "on" : "down");
-	if (flag != 1) {	
-		printk(/*KERN_DEBUG*/ " --reset(flag=%d)\n", flag);
-		if (on)
-			gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_HIGH);
-		else
-			gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_LOW);			
-		return;
-	}	
-	printk(/*KERN_INFO*/ " --enter\n");
-		
-	if (on) {		
-		s3c_config_gpio_alive_table(ARRAY_SIZE(wlan_gpio_table), wlan_gpio_table);
-		s3c_config_gpio_alive_table(ARRAY_SIZE(wlan_sdio_on_table), wlan_sdio_on_table);
-		
-		s3c_gpio_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_OUTPUT);
-		s3c_gpio_setpull(GPIO_WLAN_BT_EN, S3C_GPIO_PULL_NONE);
-
-		gpio_set_value(GPIO_WLAN_BT_EN, GPIO_LEVEL_HIGH);
-		s3c_gpio_slp_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_SLP_OUT1);
-
-		msleep(100);
-
-		gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_HIGH);
-		s3c_gpio_slp_cfgpin(GPIO_WLAN_nRST, S3C_GPIO_SLP_OUT1);
-		
-		printk(KERN_DEBUG "WLAN: GPIO_WLAN_BT_EN = %d, GPIO_WLAN_nRST = %d\n", 
-			   gpio_get_value(GPIO_WLAN_BT_EN), gpio_get_value(GPIO_WLAN_nRST));
-		
-	}
-	else {
-		/* need delay between v_bat & reg_on for 2 cycle @ 38.4MHz */
-		udelay(5);
-		
-		if (gpio_get_value(GPIO_BT_nRST) == 0) {
-			gpio_set_value(GPIO_WLAN_BT_EN, GPIO_LEVEL_LOW);	
-			s3c_gpio_slp_cfgpin(GPIO_WLAN_BT_EN, S3C_GPIO_SLP_OUT0);
-		}
-		
-		gpio_set_value(GPIO_WLAN_nRST, GPIO_LEVEL_LOW);
-		s3c_gpio_slp_cfgpin(GPIO_WLAN_nRST, S3C_GPIO_SLP_OUT0);
-		
-		printk(KERN_DEBUG "WLAN: GPIO_WLAN_BT_EN = %d, GPIO_WLAN_nRST = %d\n", 
-			   gpio_get_value(GPIO_WLAN_BT_EN), gpio_get_value(GPIO_WLAN_nRST));
-		
-		s3c_config_gpio_alive_table(ARRAY_SIZE(wlan_sdio_off_table), wlan_sdio_off_table);	
-	}
-	msleep(100);
-
-	/* mmc_rescan*/
-	sdhci_s3c_force_presence_change(&s3c_device_hsmmc3);
-
-}
-EXPORT_SYMBOL(wlan_setup_power);
 

@@ -30,8 +30,7 @@ drivers/char/consolemap_deftbl.c
 drivers/char/defkeymap.c
 drivers/misc/vibtonz/vibrator.mod.c
 drivers/net/tun.mod.c
-drivers/net/wireless/bcm4329/dhd.mod.c
-drivers/net/wireless/bcm4329/src/wl/sys/hotspot_event_monitoring.mod.c
+drivers/net/wireless/bcm4329/bcm4329.mod.c
 drivers/scsi/scsi_wait_scan.mod.c
 firmware/samsung_mfc_fw.bin
 firmware/samsung_mfc_fw.bin.gen.S

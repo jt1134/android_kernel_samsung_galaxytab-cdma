@@ -40,10 +40,10 @@ dir /sys 755 0 0
 dir /data 755 0 0
 dir /sdcard 755 0 0
 dir /system 755 0 0
-file /stage1/bml_over_mtd usr/galaxytab7c_initramfs_files/bml_over_mtd 755 0 0
-file /stage1/busybox usr/galaxytab7c_initramfs_files/busybox 755 0 0
-file /stage1/erase_image usr/galaxytab7c_initramfs_files/erase_image 755 0 0
-file /stage1/init usr/galaxytab7c_initramfs_files/init 755 0 0
+file /stage1/bml_over_mtd usr/p1c_initramfs_files/bml_over_mtd 755 0 0
+file /stage1/busybox usr/p1c_initramfs_files/busybox 755 0 0
+file /stage1/erase_image usr/p1c_initramfs_files/erase_image 755 0 0
+file /stage1/init usr/p1c_initramfs_files/init 755 0 0
 slink /stage1/cat busybox 755 0 0
 slink /stage1/cp busybox 755 0 0
 slink /stage1/cpio busybox 755 0 0

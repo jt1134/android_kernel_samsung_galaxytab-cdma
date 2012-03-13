@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TREE="device/samsung/galaxytab7c"
+TREE="device/samsung/p1c"
 
 make clean mrproper
 make ARCH=arm p1_defconfig

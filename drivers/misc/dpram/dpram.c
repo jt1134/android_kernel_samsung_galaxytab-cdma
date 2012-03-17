@@ -41,10 +41,10 @@
 #define GPIO_LEVEL_LOW				0
 #define GPIO_LEVEL_HIGH				1
 
-#define GPIO_AP_RXD					S5PV210_GPA1(2)
+#define GPIO_AP_RXD					S5PV210_GPA1(0)
 #define GPIO_AP_RXD_AF				0x2 // UART_2_RXD
 
-#define GPIO_AP_TXD					S5PV210_GPA1(3)
+#define GPIO_AP_TXD					S5PV210_GPA1(1)
 #define GPIO_AP_TXD_AF				0x2 // UART_2_TXD
 
 #define GPIO_PHONE_ON				S5PV210_GPJ1(0)
@@ -53,7 +53,7 @@
 #define GPIO_PHONE_RST_N					S5PV210_GPH3(7)
 #define GPIO_PHONE_RST_N_AF				0x1
 
-#define GPIO_PDA_ACTIVE				S5PV210_GPH1(0)
+#define GPIO_PDA_ACTIVE				S5PV210_MP03(3)
 #define GPIO_PDA_ACTIVE_AF			0x1
 
 #define GPIO_PHONE_ACTIVE			S5PV210_GPH1(7)
@@ -74,7 +74,7 @@
 /* Device node name for application interface */
 #define APP_DEVNAME				"multipdp"
 /* number of PDP context */
-#define NUM_PDP_CONTEXT			4
+#define NUM_PDP_CONTEXT			3
 
 /* Device types */
 #define DEV_TYPE_NET			0 /* network device for IP data */

@@ -313,7 +313,7 @@ static struct s3cfb_lcd lvds = {
 };
 
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0 		(8192 * SZ_1K)
-#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC1 		(9900 * SZ_1K)
+//#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC1 		(9900 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC2 		(8192 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_MFC0 		(32768 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_MFC1 		(32768 * SZ_1K)
@@ -321,7 +321,7 @@ static struct s3cfb_lcd lvds = {
 							(CONFIG_FB_S3C_NR_BUFFERS + \
 							(CONFIG_FB_S3C_NUM_OVLY_WIN * \
 							CONFIG_FB_S3C_NUM_BUF_OVLY_WIN)))
-#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_JPEG 		(14100 * SZ_1K)
+#define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_JPEG 		(4096 * SZ_1K) //(14100 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_PMEM 		(8192 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_PMEM_GPU1 (4200 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_TEXSTREAM (4800 * SZ_1K)
@@ -348,6 +348,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0,
 		.paddr = 0,
 	},
+/*
 	[3] = {
 		.id = S5P_MDEV_FIMC1,
 		.name = "fimc1",
@@ -355,6 +356,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC1,
 		.paddr = 0,
 	},
+*/
 	[4] = {
 		.id = S5P_MDEV_FIMC2,
 		.name = "fimc2",

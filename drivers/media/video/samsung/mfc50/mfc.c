@@ -420,14 +420,12 @@ static long mfc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 
        case IOCTL_MFC_BUF_CACHE:
-/*
 		mutex_lock(&mfc_mutex);
 
 		in_param.ret_code = MFCINST_RET_OK;
 		mfc_ctx->buf_type = in_param.args.buf_type;
 
 		mutex_unlock(&mfc_mutex);
-*/
 		break;
 		
 	default:

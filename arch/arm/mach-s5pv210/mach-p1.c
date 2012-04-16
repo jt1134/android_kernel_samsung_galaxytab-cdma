@@ -59,9 +59,10 @@
 
 #ifdef CONFIG_ANDROID_PMEM
 #include <linux/android_pmem.h>
+#endif
+
 #include <plat/media.h>
 #include <mach/media.h>
-#endif
 
 #ifdef CONFIG_S5PV210_POWER_DOMAIN
 #include <mach/power-domain.h>
@@ -322,8 +323,10 @@ static struct s3cfb_lcd lvds = {
 							(CONFIG_FB_S3C_NUM_OVLY_WIN * \
 							CONFIG_FB_S3C_NUM_BUF_OVLY_WIN)))
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_JPEG 		(4096 * SZ_1K) //(14100 * SZ_1K)
+#ifdef CONFIG_ANDROID_PMEM
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_PMEM 		(8192 * SZ_1K)
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_PMEM_GPU1 (4200 * SZ_1K)
+#endif
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_TEXSTREAM (4800 * SZ_1K)
 
 static struct s5p_media_device crespo_media_devs[] = {
@@ -378,6 +381,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMD,
 		.paddr = 0,
 	},
+#ifdef CONFIG_ANDROID_PMEM
 	[7] = {
 		.id = S5P_MDEV_PMEM,
 		.name = "pmem",
@@ -392,6 +396,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_PMEM_GPU1,
 		.paddr = 0,
 	},
+#endif
 	[9] = {
 		.id = S5P_MDEV_TEXSTREAM,
 		.name = "texstream",

@@ -41,6 +41,8 @@ static bool set_mode_for_ta = false;		// true: TA or USB, false: normal
 static int set_mode_for_amoled = 0;		//0: TFt-LCD, 1: AMOLED
 static int gFirmware_Update_State = FW_UPDATE_READY;
 
+static bool buttons_enabled = true;
+
 extern struct class *sec_class;
 
 //unsigned char maxim_chg_status(void);	// 1: TA or UST, 0: normal
@@ -101,7 +103,7 @@ static void touch_led_on(int val)
     if(val < 42)
         set = 1;
 
-    if(val > 0)
+    if(val > 0 && buttons_enabled)
     {
         if(set !=preset)
         {
@@ -973,6 +975,39 @@ static void check_chip_calibration(struct qt602240_data *data)
     }
 }
 
+static ssize_t buttons_enabled_status_write(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t size)
+{
+	unsigned int data;
+	if(sscanf(buf, "%u\n", &data) == 1) {
+		pr_devel("%s: %u \n", __FUNCTION__, data);
+		if(data == 0 || data == 1) {
+			if(data == 1) {
+				pr_info("%s: key function enabled\n", __FUNCTION__);
+				buttons_enabled = true;
+				touch_led_on(255);
+			}
+
+			if(data == 0) {
+				pr_info("%s: key function disabled\n", __FUNCTION__);
+				buttons_enabled = false;
+				touch_led_on(false);
+			}
+		} else {
+			pr_info("%s: invalid input range %u\n", __FUNCTION__, data);
+		}
+	} else {
+		pr_info("%s: invalid input\n", __FUNCTION__);
+	}
+
+	return size;
+}
+
+static ssize_t buttons_enabled_status_read(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%u\n", (buttons_enabled ? 1 : 0));
+}
 
 static void qt602240_input_read(struct qt602240_data *data)
 {
@@ -1077,7 +1112,7 @@ static void qt602240_input_read(struct qt602240_data *data)
 			goto soft_reset;
 		}
 
-		for (i = 0; i <NUMOFKEYS; i++ ) {
+		for (i = 0; i <(buttons_enabled ? NUMOFKEYS : 0); i++ ) {
 			if (tsp_keystatus[i]) {
 				input_report_key(input_dev, tsp_keycodes[i], 0);
 				input_sync(input_dev);
@@ -1675,6 +1710,7 @@ void qt602240_inform_first_brightness(void)
 }
 EXPORT_SYMBOL(qt602240_inform_first_brightness);
 
+static DEVICE_ATTR(buttons_enabled, S_IRUGO | S_IWUGO , buttons_enabled_status_read, buttons_enabled_status_write);
 static DEVICE_ATTR(info, 0444, qt602240_info_show, NULL);
 static DEVICE_ATTR(object_table, 0444, qt602240_object_table_show, NULL);
 static DEVICE_ATTR(object, 0664, qt602240_object_show, qt602240_object_store);
@@ -1683,6 +1719,7 @@ static DEVICE_ATTR(update_fw, 0664, NULL, qt602240_update_fw_store);
 static DEVICE_ATTR(update_status, 0664, qt602240_update_status_show, NULL);
 
 static struct attribute *qt602240_attrs[] = {
+	&dev_attr_buttons_enabled.attr,
 	&dev_attr_info.attr,
 	&dev_attr_object_table.attr,
 	&dev_attr_object.attr,

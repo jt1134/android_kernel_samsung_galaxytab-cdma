@@ -44,7 +44,7 @@ enum soc_type {
 
 /* START OF DEVICE SPECIFIC PARTITION LAYOUT */
 
-#include "samsung_galaxytab7c.h"
+#include "samsung_p1c.h"
 
 /* END OF DEVICE SPECIFIC PARTITION LAYOUT */
 

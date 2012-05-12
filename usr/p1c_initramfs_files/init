@@ -60,7 +60,7 @@ dd bs=512 if=/stage1/boot.bin skip=$load_offset count=$load_len | zcat | cpio -i
 if grep -q 1 /sys/class/power_supply/battery/charging_mode_booting ; then
 	# low power mode
 	cp lpm.rc init.rc
-	rm init.sch-i800.rc
+	rm init.p1c.rc
 fi
 
 umount /sys

@@ -42,5 +42,4 @@ obj-$(CONFIG_SAMSUNG_DPRAM)	+= dpram/
 obj-$(CONFIG_VIBTONZ)		+= vibtonz/
 obj-$(CONFIG_30PIN_CONN)	+= 30pin_con.o
 obj-$(CONFIG_MHL_SII9234)	+= sii9234.o
-obj-$(CONFIG_GENERIC_BLN) += bln.o
 obj-$(CONFIG_SAMSUNG_PARAM)	+= param/

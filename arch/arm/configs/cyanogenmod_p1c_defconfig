@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.35.7
-# Mon Apr 16 01:54:01 2012
+# Sat May 26 15:07:58 2012
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -834,6 +834,10 @@ CONFIG_BT_HID=m
 # CONFIG_AF_RXRPC is not set
 CONFIG_FIB_RULES=y
 CONFIG_WIRELESS=y
+CONFIG_WIRELESS_EXT=y
+CONFIG_WEXT_CORE=y
+CONFIG_WEXT_PROC=y
+CONFIG_WEXT_PRIV=y
 CONFIG_CFG80211=y
 CONFIG_NL80211_TESTMODE=y
 # CONFIG_CFG80211_DEVELOPER_WARNINGS is not set
@@ -842,13 +846,10 @@ CONFIG_CFG80211_DEFAULT_PS=y
 # CONFIG_CFG80211_DEBUGFS is not set
 # CONFIG_CFG80211_INTERNAL_REGDB is not set
 # CONFIG_CFG80211_WEXT is not set
+CONFIG_WIRELESS_EXT_SYSFS=y
 # CONFIG_LIB80211 is not set
 CONFIG_CFG80211_ALLOW_RECONNECT=y
 # CONFIG_MAC80211 is not set
-
-#
-# CFG80211 needs to be enabled for MAC80211
-#
 
 #
 # Some wireless drivers require a rate control algorithm
@@ -1010,7 +1011,6 @@ CONFIG_MHL_SII9234=y
 CONFIG_SAMSUNG_DPRAM=y
 CONFIG_VIBTONZ=m
 CONFIG_STORAGE_DGS=m
-# CONFIG_GENERIC_BLN is not set
 CONFIG_SAMSUNG_PARAM=y
 CONFIG_HAVE_IDE=y
 # CONFIG_IDE is not set
@@ -1080,11 +1080,15 @@ CONFIG_TUN=m
 CONFIG_NETDEV_1000=y
 CONFIG_NETDEV_10000=y
 CONFIG_WLAN=y
+# CONFIG_ATH_COMMON is not set
 # CONFIG_BCM4329 is not set
 CONFIG_BCMDHD=y
 CONFIG_BCMDHD_FW_PATH="/vendor/firmware/fw_bcmdhd.bin"
 CONFIG_BCMDHD_NVRAM_PATH="/data/.nvram_net.txt"
 # CONFIG_HOSTAP is not set
+# CONFIG_IWM is not set
+# CONFIG_LIBERTAS is not set
+# CONFIG_MWIFIEX is not set
 
 #
 # Enable WiMAX (Networking options) to see the WiMAX drivers

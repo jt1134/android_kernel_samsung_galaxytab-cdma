@@ -31,6 +31,8 @@ nod /dev/mtd/mtd4ro 644 0 0 c 90 9
 nod /dev/mtd/mtd2ro 644 0 0 c 90 5
 nod /dev/block/mmcblk0 644 0 0 b 179 0
 nod /dev/block/mmcblk0p1 644 0 0 b 179 1
+nod /dev/block/mmcblk0p2 644 0 0 b 179 2
+nod /dev/block/mmcblk0p3 644 0 0 b 179 3
 nod /dev/block/mmcblk1 644 0 0 b 179 8
 nod /dev/block/mmcblk1p1 644 0 0 b 179 9
 dir /stage1 755 0 0
@@ -42,7 +44,7 @@ dir /sdcard 755 0 0
 dir /system 755 0 0
 file /stage1/bml_over_mtd source/usr/p1c_initramfs_files/bml_over_mtd 755 0 0
 file /stage1/busybox source/usr/p1c_initramfs_files/busybox 755 0 0
-file /stage1/erase_image source/usr/p1c_initramfs_files/erase_image 755 0 0
+file /stage1/make_ext4fs source/usr/p1c_initramfs_files/make_ext4fs 755 0 0
 file /stage1/init source/usr/p1c_initramfs_files/init 755 0 0
 file /stage1/boot.cpio ../../ramdisk.cpio 644 0 0
 file /stage1/recovery.cpio ../../ramdisk-recovery.cpio 644 0 0

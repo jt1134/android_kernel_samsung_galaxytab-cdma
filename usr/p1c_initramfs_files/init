@@ -15,7 +15,7 @@ bml_over_mtd dump boot 72 reservoir 2004 /stage1/boot.bin
 load_image=/stage1/boot.cpio
 
 mount -t ext4 /dev/block/mmcblk0p2 /system
-mount -t ext4 /dev/block/mmcblk0p3 /cache
+mount -t ext4 /dev/block/mmcblk0p1 /cache
 
 if test -e /cache/.startrecovery || grep -q bootmode=2 /proc/cmdline ; then
 	# recovery boot
@@ -28,8 +28,8 @@ if test -e /cache/.startrecovery || grep -q bootmode=2 /proc/cmdline ; then
 elif ! test -e /system/build.prop ; then
 	# emergency boot
         umount /cache
-        make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /cache /dev/block/mmcblk0p3
-        mount -t ext4 /dev/block/mmcblk0p3 /cache
+        make_ext4fs -b 4096 -g 32768 -i 8192 -I 256 -a /cache /dev/block/mmcblk0p1
+        mount -t ext4 /dev/block/mmcblk0p1 /cache
         mkdir /cache/recovery
 
 	mount -t vfat /dev/block/mmcblk1p1 /sdcard

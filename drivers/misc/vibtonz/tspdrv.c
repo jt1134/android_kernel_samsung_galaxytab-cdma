@@ -84,17 +84,20 @@ static int g_nMajor = 0;
 #include "VibeOSKernelLinuxTime.c"
 
 /*Modified for increasing vibrator strength */
-#define VIBRATOR_PERIOD	44640
-#define VIBRATOR_DUTY	42408
+#define PWM_PERIOD		44640
+#define PWM_DUTY_MAX	42408
+#define PWM_DUTY_MIN	21204
 
-static int vibrator_period = VIBRATOR_PERIOD;
-static int vibrator_duty = VIBRATOR_DUTY;
+static unsigned int pwm_period		= PWM_PERIOD;
+static unsigned int pwm_duty		= 100;
+static unsigned int pwm_duty_value	= PWM_DUTY_MAX;
+static unsigned int multiplier		= (PWM_DUTY_MAX - PWM_DUTY_MIN) / 100;
 
 static struct hrtimer timer;
 static int max_timeout = 5000;
-static int vibrator_value = 0;
+static int pwm_value = 0;
 
-unsigned int g_PWM_duty_max = VIBRATOR_PERIOD;
+unsigned int g_PWM_duty_max = PWM_PERIOD;
 
 static struct work_struct work_timer;
 
@@ -106,7 +109,7 @@ static int set_vibetonz(int timeout)
         if(vib_en)
         {
             vib_en = false;
-		s3c_gpio_cfgpin(VIB_PWM, S3C_GPIO_OUTPUT);
+			s3c_gpio_cfgpin(VIB_PWM, S3C_GPIO_OUTPUT);
             regulator_disable(regulator_motor);
             pwm_disable(Immvib_pwm);
             gpio_direction_output(VIB_EN, 0);
@@ -117,15 +120,15 @@ static int set_vibetonz(int timeout)
         if(!vib_en)
         {
             vib_en = true;
-		s3c_gpio_cfgpin(VIB_PWM, S3C_GPIO_SFN(2));
+			s3c_gpio_cfgpin(VIB_PWM, S3C_GPIO_SFN(2));
             regulator_enable(regulator_motor);
-            pwm_config(Immvib_pwm, vibrator_duty, vibrator_period);
+            pwm_config(Immvib_pwm, pwm_duty_value, pwm_period);
             pwm_enable(Immvib_pwm);
 
             gpio_direction_output(VIB_EN, 1);
         }
     }
-    vibrator_value = timeout;
+    pwm_value = timeout;
     return 0;
 }
 
@@ -157,7 +160,7 @@ static int get_time_for_vibetonz(struct timed_output_dev *dev)
 		remaining = 0;
 	}
 
-	if (vibrator_value ==-1)
+	if (pwm_value ==-1)
 	{
 		remaining = -1;
 	}
@@ -171,7 +174,7 @@ static void enable_vibetonz_from_user(struct timed_output_dev *dev,int value)
 	hrtimer_cancel(&timer);
 
 	set_vibetonz(value);
-	vibrator_value = value;
+	pwm_value = value;
 
 	if (value > 0)
 	{
@@ -180,7 +183,7 @@ static void enable_vibetonz_from_user(struct timed_output_dev *dev,int value)
 			value = max_timeout;
 		}
 		hrtimer_start(&timer,	ktime_set(value / 1000, (value % 1000) * 1000000), HRTIMER_MODE_REL);
-		vibrator_value = 0;
+		pwm_value = 0;
 	}
 }
 
@@ -203,6 +206,35 @@ static void vibetonz_start(void)
 		printk(KERN_ERR "[Vibtonz] timed_output_dev_register is fail \n");
 }
 
+static ssize_t p1_vibrator_set_duty(struct device *dev,
+					struct device_attribute *attr,
+					const char *buf, size_t size)
+{
+	sscanf(buf, "%d\n", &pwm_duty);
+
+	if (pwm_duty >= 0 && pwm_duty <= 100) 
+		pwm_duty_value = (pwm_duty * multiplier) + PWM_DUTY_MIN;
+
+	return size;
+}
+static ssize_t p1_vibrator_show_duty(struct device *dev,
+					struct device_attribute *attr,
+					const char *buf)
+{
+	return sprintf(buf, "%d", pwm_duty);
+}
+static DEVICE_ATTR(pwm_duty, S_IRUGO | S_IWUGO, p1_vibrator_show_duty, p1_vibrator_set_duty);
+static struct attribute *pwm_duty_attributes[] = {
+	&dev_attr_pwm_duty,
+	NULL
+};
+static struct attribute_group pwm_duty_group = {
+	.attrs = pwm_duty_attributes,
+};
+static struct miscdevice pwm_duty_device = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "pwm_duty",
+};
 
 /* File IO */
 static int open(struct inode *inode, struct file *file);
@@ -370,6 +402,14 @@ int init_module(void)
     }
 
     wake_lock_init(&vib_wake_lock, WAKE_LOCK_SUSPEND, "vib_present");
+
+	if (misc_register(&pwm_duty_device)) {
+		printk("%s misc_register(pwm_duty) failed\n", __FUNCTION__);
+	} else {
+		if (sysfs_create_group(&pwm_duty_device.this_device->kobj, &pwm_duty_group)) {
+			printk("failed to create sysfs group for device pwm_duty\n");
+		}
+	}
 
 #ifdef VIBE_TUNING
 	// ---------- file creation at '/sys/class/vibetonz/immTest'------------------------------

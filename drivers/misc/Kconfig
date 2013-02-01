@@ -462,6 +462,7 @@ config SAMSUNG_MODEMCTL
 
 config SAMSUNG_DPRAM
 	bool "Samsung CDMA Modem Control/IO Driver"
+	default n
 
 config SVNET_WHITELIST
 	bool "Samsung Modem control White port list"

@@ -968,12 +968,12 @@ static struct max8998_platform_data max8998_pdata = {
 	.charger        = &max8998_charger,
 	.irq_base	= IRQ_MAX8998_BASE,
 };
-
+/*
 struct platform_device sec_device_dpram = {
 	.name	= "dpram-device",
 	.id	= -1,
 };
-
+*/
 static void lvds_cfg_gpio(struct platform_device *pdev)
 {
         int i;
@@ -6608,7 +6608,7 @@ static struct platform_device *crespo_devices[] __initdata = {
 #endif
 
 	//cdma modem driver
-	&sec_device_dpram,
+	//&sec_device_dpram,
 };
 
 unsigned int HWREV;

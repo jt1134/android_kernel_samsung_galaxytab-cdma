@@ -36,6 +36,7 @@ nod /dev/block/mmcblk0p3 644 0 0 b 179 3
 nod /dev/block/mmcblk1 644 0 0 b 179 8
 nod /dev/block/mmcblk1p1 644 0 0 b 179 9
 nod /dev/block/mmcblk1p3 644 0 0 b 179 11
+nod /dev/urandom 644 0 0 c 1 9
 dir /stage1 755 0 0
 dir /cache 755 0 0
 dir /proc 755 0 0
@@ -43,6 +44,11 @@ dir /sys 755 0 0
 dir /data 755 0 0
 dir /sdcard 755 0 0
 dir /system 755 0 0
+dir /lvm 755 0 0
+dir /lvm/etc 755 0 0
+dir /lvm/sbin 755 0 0
+file /lvm/etc/lvm.conf source/usr/p1c_initramfs_files/lvm.conf 755 0 0
+file /lvm/sbin/lvm source/usr/p1c_initramfs_files/lvm 755 0 0
 file /stage1/bml_over_mtd source/usr/p1c_initramfs_files/bml_over_mtd 755 0 0
 file /stage1/busybox source/usr/p1c_initramfs_files/busybox 755 0 0
 file /stage1/make_ext4fs source/usr/p1c_initramfs_files/make_ext4fs 755 0 0

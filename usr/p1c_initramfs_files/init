@@ -16,7 +16,7 @@ load_image=/stage1/boot.cpio
 
 # defaults
 CACHE='mmcblk0p1'
-DATA='mmcblk0p2'
+DATA='lvpool/userdata'
 SDCARD='mmcblk1p1'
 NO_EMMC='false'
 BOOTSTRAP='false'
@@ -84,11 +84,11 @@ fi
 
 if $BOOTSTRAP ; then
 	sed -i s/mmcblk0p1/"$CACHE"/ /fstab.p1c
-	sed -i s/mmcblk0p2/"$DATA"/ /fstab.p1c
+	sed -i s/lvpool\/userdata/block\/"$DATA"/ /fstab.p1c
 
 	sed -i s/mmcblk0p1/"$CACHE"/ /etc/recovery.fstab
-	sed -i s/mmcblk0p2/"$DATA"/ /etc/recovery.fstab
 	sed -i s/mmcblk1p1/"$SDCARD"/ /etc/recovery.fstab
+	sed -i s/lvpool\/userdata/block\/"$DATA"/ /etc/recovery.fstab
 fi
 
 umount /sys
